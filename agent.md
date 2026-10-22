@@ -19,6 +19,7 @@
 - 同一域内按职责区分 `api`、`application`、`domain`、`infrastructure`（或与 Maven 模块对应的源码目录）；对外只暴露明确的公开 API、事件和端口，具体实现留在 `internal`。跨域不得直接依赖对方的 `internal`、数据库表映射或 Repository。
 - 依赖方向遵守 `interfaces/api → application → domain`；基础设施实现领域端口，启动模块负责装配。Controller 不直接调用 Repository，领域层不依赖 Spring、HTTP、ORM 或渠道 SDK。
 - 一个表或聚合只有一个业务域负责写入。跨域同步需求调用公开接口，异步事实走事件与 outbox；不要通过共享实体或跨域 SQL 暗改数据。
+- 持久层统一使用 MyBatis-Plus；单表 CRUD 可用 `BaseMapper`，交易关键写操作用明确的 Mapper SQL、条件更新和影响行数检查。Mapper 与持久化实体只留在 `tradetrail-persistence`，不得泄漏到领域层或 Controller。
 
 ## 3. Controller 与接口设计
 

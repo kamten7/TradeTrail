@@ -37,7 +37,7 @@ description: Enforces TradeTrail backend architecture rules when writing, modify
 api/          CustomerOrderController、MerchantCatalogController（按角色 + 资源分组）
 application/  用例服务：CreateOrderService、ShipOrderService（编排事务与端口）
 domain/       Order、Stock、OrderStatus、OrderStateMachine（零框架依赖）
-infrastructure/ JdbcOrderRepository、MockPaymentAdapter（实现 domain 端口）
+infrastructure/ MyBatisPlusOrderRepository、MockPaymentAdapter（实现 domain 端口）
 ```
 
 - 业务域：`catalog`、`cart`、`order`、`inventory`、`payment`、`fulfillment`、`after_sale`、`integration`
@@ -46,7 +46,7 @@ infrastructure/ JdbcOrderRepository、MockPaymentAdapter（实现 domain 端口�
 
 ## 禁止清单
 
-- 不用 JPA / MyBatis（交易核心用 `JdbcClient` 显式 SQL）；不同时引入两套持久化框架
+- 持久层统一使用 MyBatis-Plus；交易核心用明确的 Mapper SQL、条件更新和影响行数检查；不引入 JPA 或另一套持久化框架
 - 不为尚未出现的需求预置空接口、抽象层或消息队列
 - 不用日志代替错误处理，不静默吞异常
 - 不把 mock 支付/物流的 HMAC 协议描述成第三方通用协议

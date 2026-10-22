@@ -1,6 +1,6 @@
 # 五类核心代码模板
 
-模板只给结构与关键校验，命名按业务调整；SQL 用 `JdbcClient` 写显式语句。
+模板只给结构与关键校验，命名按业务调整；持久层用 MyBatis-Plus，交易关键更新放在明确的 Mapper SQL 中并检查影响行数。下列示意调用需按实际 Mapper 接口调整。
 
 ## 1. 库存条件扣减（下单预留）
 
@@ -11,24 +11,11 @@ public long reserveAndCreateOrder(CreateOrderCommand command, String idempotency
             .orElseGet(() -> createOrder(command));
 
     for (OrderItem item : order.items().sortedBySkuIdAscending()) {
-        int rows = jdbcClient.sql("""
-                UPDATE stock
-                   SET available = available - :qty,
-                       reserved  = reserved + :qty,
-                       version   = version + 1
-                 WHERE sku_id = :skuId
-                   AND available >= :qty
-                """)
-                .param("qty", item.quantity())
-                .param("skuId", item.skuId())
-                .update();
+        int rows = stockMapper.reserve(item.skuId(), item.quantity());
         if (rows == 0) {
             throw new StockNotEnoughException(item.skuId());
         }
-        jdbcClient.sql("""
-                INSERT INTO inventory_reservation(order_id, sku_id, qty, state)
-                VALUES (:orderId, :skuId, :qty, 'RESERVED')
-                """).param("orderId", order.id()).param("skuId", item.skuId()).param("qty", item.quantity()).update();
+        reservationMapper.insert(new InventoryReservation(order.id(), item.skuId(), item.quantity(), "RESERVED"));
     }
     return order.id();
 }
@@ -55,21 +42,11 @@ public OrderResponse create(CreateOrderRequest request, String idempotencyKey) {
 ```java
 @Transactional
 public void paySuccess(long orderId, PaymentCallback callback) {
-    int rows = jdbcClient.sql("""
-            UPDATE orders SET status = 'PAID', version = version + 1
-             WHERE id = :id AND status = 'PENDING_PAYMENT'
-            """).param("id", orderId).update();
+    int rows = orderMapper.transition(orderId, "PENDING_PAYMENT", "PAID");
     if (rows == 0) {
         return;
     }
-    jdbcClient.sql("""
-            INSERT INTO outbox_event(event_id, type, aggregate_id, payload, status, next_retry_at)
-            VALUES (:eventId, 'ORDER_PAID', :orderId, :payload, 'PENDING', NOW())
-            """)
-            .param("eventId", UUID.randomUUID().toString())
-            .param("orderId", orderId)
-            .param("payload", toJson(orderId))
-            .update();
+    outboxMapper.insert(new OutboxEvent(UUID.randomUUID().toString(), "ORDER_PAID", orderId, toJson(orderId), "PENDING"));
 }
 ```
 
@@ -91,11 +68,7 @@ public void transition(Order order, OrderStatus target) {
     if (!ALLOWED.getOrDefault(order.status(), Set.of()).contains(target)) {
         throw new IllegalTransitionException(order.status(), target);
     }
-    int rows = jdbcClient.sql("""
-            UPDATE orders SET status = :target, version = version + 1
-             WHERE id = :id AND status = :expected
-            """).param("target", target.name()).param("id", order.id())
-            .param("expected", order.status().name()).update();
+    int rows = orderMapper.transition(order.id(), order.status().name(), target.name());
     if (rows == 0) {
         throw new ConcurrentTransitionException(order.id());
     }

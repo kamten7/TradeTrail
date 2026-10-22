@@ -55,13 +55,13 @@ v1 使用单官方店铺、单币种、单仓、单包裹、整单退款。三�
 |---|---|---|---|
 | 用户端（官方商城） | Vue 3 + TypeScript + Vite；Vue Router 管页面，Pinia 管登录及购物车界面状态（购物车数据以服务端为准）；Vant 用于移动端交互，桌面布局用响应式 CSS | 商城 Spring Boot REST API；MySQL 保存商品、购物车、订单、支付、物流和售后数据 | 购物、结算和物流时间线适合移动优先的交互；同一 H5 页面兼容桌面浏览器，v1 不另做原生 App 或小程序 |
 | 店家管理端 | 独立 Vue 3 + TypeScript + Vite 应用；Vue Router、Pinia；Element Plus 提供表格、表单和审核弹窗 | 与用户端共用商城服务和 MySQL，走 `/admin/**` 接口与 `MERCHANT_ADMIN` 权限 | 店家主要在桌面处理商品、库存、订单和售后，适合信息密度较高的后台界面；无需再维护一套交易后端 |
-| 物流模拟端 | Spring MVC + Thymeleaf 服务端页面，少量原生 JavaScript/CSS | 独立 Spring Boot 服务；文件模式 H2 保存模拟事件与投递结果；Spring `RestClient` 推送签名 HTTP 回调，定时任务负责重试 | 只有录入轨迹、查看结果和重试几个页面，服务端渲染足够；独立进程与数据库能真实演示外部物流推送边界 |
+| 物流模拟端 | Spring MVC + Thymeleaf 服务端页面，少量原生 JavaScript/CSS | 独立 Spring Boot 服务；Docker MySQL 中的独立 `tradetrail_logistics` 数据库保存模拟事件与投递结果，H2 可用于轻量测试；Spring `RestClient` 推送签名 HTTP 回调，定时任务负责重试 | 只有录入轨迹、查看结果和重试几个页面，服务端渲染足够；独立进程与数据库能真实演示外部物流推送边界 |
 
-**商城后端公共栈**：Maven 多模块 + Spring MVC（REST）+ Spring Security（登录、角色鉴权）+ Spring JDBC/`JdbcClient`（显式 SQL）+ MySQL + Flyway。订单和库存的条件更新、CAS 与事务边界需要看得见 SQL，因此交易核心优先用 JDBC，不同时引入 JPA/MyBatis 两套持久化框架。用 Bean Validation 校验入参；用 JUnit 5、Spring Boot Test 和 Testcontainers MySQL 验证事务、并发和回调场景；用 ArchUnit 校验模块依赖。outbox 首版用数据库表和 Spring 定时任务投递，不为本地课程项目预先引入消息队列。
+**商城后端公共栈**：Maven 多模块 + Spring MVC（REST）+ Spring Security（登录、角色鉴权）+ MyBatis-Plus（Spring Boot 3 专用 starter）+ MySQL + Flyway。简单单表操作用 `BaseMapper`，订单/库存条件更新、CAS、审计流水和复杂查询用明确的 Mapper SQL，并检查影响行数；不用 JPA 或另一套持久化框架。用 Bean Validation 校验入参；用 JUnit 5、Spring Boot Test 和 Testcontainers MySQL 验证事务、并发和回调场景；用 ArchUnit 校验模块依赖。outbox 首版用数据库表和 Spring 定时任务投递，不为本地课程项目预先引入消息队列。开发演示推荐 Docker Compose 提供 MySQL；文件模式 H2 保留用于轻量测试。Compose 同时提供 Redis，待出现明确缓存或限流需求时再接入业务，库存与订单事实始终保存在 MySQL。交易 SQL 需在 MySQL 集成测试中验证。
 
-**前后端协作与部署**：用户端和店家端分别构建、分别配置 API 地址；开发时由 Vite 代理到商城服务，演示部署时可由 Nginx 按路径转发两个静态站点和商城 API。商城登录使用服务端会话与 HttpOnly Cookie，写请求保留 CSRF 防护；服务端按角色及资源归属再次授权，前端路由守卫只负责界面体验。物流操作者在独立服务登录，其浏览器不持有商城服务签名密钥；物流服务从环境配置读取密钥后发送回调。商城与物流服务的数据库迁移各自管理，本地可用 Docker Compose 启动 MySQL 和两个服务。
+**前后端协作与部署**：用户端和店家端分别构建、分别配置 API 地址；开发时由 Vite 代理到商城服务，演示部署时可由 Nginx 按路径转发两个静态站点和商城 API。商城登录使用服务端会话与 HttpOnly Cookie，写请求保留 CSRF 防护；服务端按角色及资源归属再次授权，前端路由守卫只负责界面体验。物流操作者在独立服务登录，其浏览器不持有商城服务签名密钥；物流服务从环境配置读取密钥后发送回调。商城与物流服务的数据库迁移各自管理；本地用 Docker Compose 启动 MySQL、Redis，两个后端和前端在宿主机运行。
 
-选型依据：[Spring Boot 3.5 系统要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)、[Vue 3 与 TypeScript](https://vuejs.org/guide/typescript/overview)、[Element Plus](https://element-plus.org/en-US/guide/installation.html)、[Spring RestClient](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html)、[H2 文件数据库](https://h2database.com/html/features.html)、[Flyway 版本迁移](https://documentation.red-gate.com/fd/versioned-migrations-273973333.html)。
+选型依据：[Spring Boot 3.5 系统要求](https://docs.spring.io/spring-boot/3.5/system-requirements.html)、[MyBatis-Plus 安装说明](https://baomidou.com/en/getting-started/install/)、[Vue 3 与 TypeScript](https://vuejs.org/guide/typescript/overview)、[Element Plus](https://element-plus.org/en-US/guide/installation.html)、[Spring RestClient](https://docs.spring.io/spring-framework/reference/integration/rest-clients.html)、[H2 文件数据库](https://h2database.com/html/features.html)、[Flyway 版本迁移](https://documentation.red-gate.com/fd/versioned-migrations-273973333.html)。
 
 ## 4. 一致性规则与最小数据设计
 
@@ -121,4 +121,4 @@ v1 使用单官方店铺、单币种、单仓、单包裹、整单退款。三�
 
 ## 7. 当前仓库状态
 
-当前仓库只有设计资料，尚无应用代码、数据库迁移或测试。本文是可实施的方案，表格中的验收断言是后续开发目标，不代表已经运行或测得结果。
+仓库已有 Maven 多模块后端、MyBatis-Plus 持久层、两份 Flyway 商城迁移、独立物流模拟服务与两套 Vue 前端。当前**可运行的基础版**已覆盖商品发布/上架、库存调整、购物车、下单预留与取消、内部模拟付款、发货、签名物流推送、轨迹查询及售后申请。完整设计中的独立异步支付回调、退款补偿、outbox 恢复、售后审核/退款、压测与 MySQL 集成验证仍是后续目标；上文验收表不代表这些能力已经完成。启动和已验证路径见 [README](README.md)、[实施路线](docs/implementation-roadmap.md)。

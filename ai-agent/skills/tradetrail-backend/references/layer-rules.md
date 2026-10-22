@@ -7,7 +7,7 @@
 | `api` | HTTP 编解码、参数校验、鉴权入口、错误响应组装 | 业务规则、事务、SQL | application |
 | `application` | 用例编排、事务边界、幂等键处理、调用 domain 与端口 | SQL 细节、协议细节 | domain + 端口接口 |
 | `domain` | 实体、值对象、状态机、业务不变量 | Spring、HTTP、ORM、渠道 SDK | 无（纯 Java） |
-| `infrastructure` | 实现端口：JDBC 仓储、渠道适配器、outbox 投递 | 业务判断 | domain 端口 |
+| `infrastructure` | 实现端口：MyBatis-Plus 仓储、渠道适配器、outbox 投递 | 业务判断 | domain 端口 |
 
 依赖只能从上往下：`api → application → domain`，`infrastructure → domain`（实现端口）。启动模块 `tradetrail-boot` 负责装配。
 
@@ -18,7 +18,7 @@ com.tradetrail.order
 ├── api                OrderController、OrderAdminController
 ├── application        CreateOrderService、CancelOrderService
 ├── domain             Order、OrderStatus、OrderTransition
-├── infrastructure     JdbcOrderRepository
+├── infrastructure     MyBatisPlusOrderRepository
 └── internal           本域私有实现，其他域不得引用
 ```
 
