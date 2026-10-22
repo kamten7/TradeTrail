@@ -1,0 +1,6 @@
+body { margin:0; font:14px/1.6 system-ui,sans-serif; color:var(--tt-text); background:var(--tt-bg); }
+.shell { display:flex; min-height:100vh; } .sidebar { width:220px; flex:0 0 220px; background:var(--tt-card); border-right:1px solid var(--tt-border); padding:24px 0; }
+.sidebar h2,.sidebar p { margin:0 24px; } .sidebar h2 { color:var(--tt-primary); font-size:24px; } .sidebar p { color:var(--tt-text-secondary); margin-bottom:32px; }
+.body { flex:1; min-width:0; } .topbar { height:56px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; background:var(--tt-card); border-bottom:1px solid var(--tt-border); }
+main { padding:24px; } h1 { margin:0; font-size:20px; } .panel { margin-bottom:24px; } .form { max-width:540px; } .login { max-width:480px; } .alert { margin-bottom:16px; }
+@media (max-width:760px) { .shell { display:block; } .sidebar { width:auto; padding:12px; } .sidebar p { margin-bottom:8px; } main { padding:16px; } }

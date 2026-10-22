@@ -1,0 +1,7 @@
+body { margin:0; font-family:system-ui,sans-serif; } .tt-page { max-width:720px; margin:auto; padding-bottom:80px; }
+.hero { display:flex; justify-content:space-between; align-items:center; padding:24px 16px; background:var(--tt-card); border-radius:8px; }
+.hero strong { font-size:24px; } .hero p,.hint { color:var(--tt-text-secondary); font-size:14px; }
+h1,h2 { font-size:20px; line-height:var(--tt-line-title); } .login { margin-top:24px; }
+.product,.order { margin:12px 0; } .row { display:flex; justify-content:space-between; align-items:center; }
+.error { color:var(--tt-danger); padding:12px; background:var(--tt-card); border-radius:8px; }
+.timeline { padding-left:24px; font-size:14px; } button { min-height:44px; }
