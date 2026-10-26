@@ -13,10 +13,9 @@ class ShipOrderApiTest extends ApiTestBase {
     @Test
     void shipsPaidOrder() throws Exception {
         long id = order(publishedProduct(), UUID.randomUUID().toString());
-        mvc.perform(post("/orders/{id}/payments", id).with(user("customer").roles("CUSTOMER")).with(csrf()))
-                .andExpect(status().isOk());
+        pay(id);
         mvc.perform(post("/admin/orders/{id}/shipments", id).with(user("merchant").roles("MERCHANT_ADMIN"))
-                .with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SHIPPED"))
+                .with(write())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("SHIPPED"))
                 .andExpect(jsonPath("$.trackingNo").isNotEmpty());
     }
 }

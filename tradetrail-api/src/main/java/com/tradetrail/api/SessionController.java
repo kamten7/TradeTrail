@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class SessionController {
     @GetMapping("/session")
     public Map<String, Object> session(Principal principal, CsrfToken csrfToken) {
-        return Map.of("user", principal == null ? "" : principal.getName(), "csrfToken", csrfToken.getToken());
+        return Map.of("user", principal == null ? "" : principal.getName(), "csrfToken", csrfToken.getToken(),
+                "roles", principal instanceof Authentication authentication ? authentication.getAuthorities().stream().map(Object::toString).toList() : java.util.List.of());
     }
 
     @PostMapping("/session/logout")

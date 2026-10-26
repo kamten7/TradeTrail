@@ -15,6 +15,7 @@
     <module>tradetrail-application</module>
     <module>tradetrail-persistence</module>
     <module>tradetrail-api</module>
+    <module>tradetrail-channel-mock</module>
     <module>tradetrail-boot</module>
     <module>tradetrail-logistics-simulator</module>
   </modules>

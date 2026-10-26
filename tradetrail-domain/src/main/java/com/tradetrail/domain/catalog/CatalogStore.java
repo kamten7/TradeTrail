@@ -8,4 +8,5 @@ public interface CatalogStore {
     Optional<Product> find(long id);
     List<Product> list(boolean includeUnpublished);
     boolean publish(long id);
+    boolean update(long id, String name, String description, long priceCents, boolean published);
 }

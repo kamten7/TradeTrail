@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ProductAdminController {
+    public record UpdateProduct(@NotBlank String name,String description,@Min(1) long priceCents,boolean published) {}
+
+    @org.springframework.web.bind.annotation.PutMapping("/admin/products/{id}")
+    public Product update(@PathVariable long id,@Valid @RequestBody UpdateProduct request) {
+        return catalog.update(id,request.name(),request.description(),request.priceCents(),request.published());
+    }
     private final CatalogService catalog;
     private final InventoryService inventory;
 

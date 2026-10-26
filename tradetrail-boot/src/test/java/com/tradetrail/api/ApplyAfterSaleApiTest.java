@@ -14,10 +14,9 @@ class ApplyAfterSaleApiTest extends ApiTestBase {
     @Test
     void acceptsPaidOrderApplication() throws Exception {
         long id = order(publishedProduct(), UUID.randomUUID().toString());
-        mvc.perform(post("/orders/{id}/payments", id).with(user("customer").roles("CUSTOMER")).with(csrf()))
-                .andExpect(status().isOk());
+        pay(id);
         mvc.perform(post("/orders/{id}/after-sales", id).with(user("customer").roles("CUSTOMER"))
-                .with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"商品问题\"}"))
+                .with(write()).contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"商品问题\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("APPLIED"));
     }
 }

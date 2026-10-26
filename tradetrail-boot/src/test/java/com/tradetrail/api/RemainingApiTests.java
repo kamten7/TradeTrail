@@ -26,7 +26,7 @@ class GetSessionApiTest extends ApiTestBase {
 
 class LogoutSessionApiTest extends ApiTestBase {
     @Test void signsOut() throws Exception {
-        mvc.perform(post("/session/logout").with(user("customer").roles("CUSTOMER")).with(csrf()))
+        mvc.perform(post("/session/logout").with(user("customer").roles("CUSTOMER")).with(write()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.result").value("signed_out"));
     }
 }
@@ -49,7 +49,7 @@ class ListAdminProductsApiTest extends ApiTestBase {
 class PublishProductApiTest extends ApiTestBase {
     @Test void publishesDraft() throws Exception {
         mvc.perform(post("/admin/products/{id}/publish", product())
-                .with(user("merchant").roles("MERCHANT_ADMIN")).with(csrf()))
+                .with(user("merchant").roles("MERCHANT_ADMIN")).with(write()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.published").value(true));
     }
 }
@@ -73,7 +73,7 @@ class GetOrderApiTest extends ApiTestBase {
 class GetPaymentApiTest extends ApiTestBase {
     @Test void returnsPaymentState() throws Exception {
         mvc.perform(get("/orders/{id}/payments", paidOrder()).with(user("customer").roles("CUSTOMER")))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.paid").value(true));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.payment.status").value("SUCCEEDED"));
     }
 }
 
@@ -106,7 +106,7 @@ class GetAfterSaleApiTest extends ApiTestBase {
     @Test void returnsExistingCase() throws Exception {
         long id = paidOrder();
         mvc.perform(post("/orders/{id}/after-sales", id).with(user("customer").roles("CUSTOMER"))
-                .with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"破损\"}"))
+                .with(write()).contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"破损\"}"))
                 .andExpect(status().isOk());
         mvc.perform(get("/orders/{id}/after-sales", id).with(user("customer").roles("CUSTOMER")))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.reason").value("破损"));

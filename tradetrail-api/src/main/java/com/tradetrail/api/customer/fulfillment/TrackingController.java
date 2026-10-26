@@ -27,8 +27,7 @@ public class TrackingController {
     }
 
     @GetMapping("/orders/{id}/shipment")
-    public Map<String, Object> shipment(@PathVariable long id, Principal principal) {
-        Order order = orders.get(id, principal.getName());
-        return Map.of("orderId", order.id(), "trackingNo", order.trackingNo() == null ? "" : order.trackingNo());
+    public Object shipment(@PathVariable long id, Principal principal) {
+        return fulfillment.shipment(id,principal.getName()).<Object>map(value->value).orElse(Map.of("orderId",id,"trackingNo",""));
     }
 }

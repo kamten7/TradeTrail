@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class CartController {
+    @PostMapping("/cart/checkout")
+    public com.tradetrail.domain.order.Order checkout(@Valid @RequestBody com.tradetrail.api.customer.order.OrderController.CreateOrder request,
+            @org.springframework.web.bind.annotation.RequestHeader("Idempotency-Key") String key,Principal principal) {
+        return cart.checkout(principal.getName(),request.items().stream().map(com.tradetrail.api.customer.order.OrderController.Line::command).toList(),request.address(),key);
+    }
     private final CartService cart;
 
     public CartController(CartService cart) {

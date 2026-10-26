@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AfterSaleController {
+    public record ReturnParcel(@NotBlank @jakarta.validation.constraints.Size(max=100) String trackingNo) {}
+    @PostMapping("/after-sales/{id}/return")
+    public AfterSale returnParcel(@PathVariable long id,@Valid @RequestBody ReturnParcel request,Principal principal) {
+        return cases.returnParcel(id,principal.getName(),request.trackingNo());
+    }
     private final AfterSaleService cases;
 
     public AfterSaleController(AfterSaleService cases) {

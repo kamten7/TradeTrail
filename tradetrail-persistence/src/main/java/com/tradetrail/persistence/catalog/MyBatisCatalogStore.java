@@ -39,4 +39,7 @@ public class MyBatisCatalogStore implements CatalogStore {
     public boolean publish(long id) {
         return mapper.publish(id) == 1;
     }
+    public boolean update(long id,String name,String description,long price,boolean published) {
+        return mapper.updateProduct(id,name,description,price,published)==1;
+    }
 }

@@ -14,6 +14,6 @@ class CancelOrderApiTest extends ApiTestBase {
     void releasesReservationWhenCancelled() throws Exception {
         long id = order(publishedProduct(), UUID.randomUUID().toString());
         mvc.perform(post("/orders/{id}/cancel", id).with(user("customer").roles("CUSTOMER"))
-                .with(csrf())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CANCELLED"));
+                .with(write())).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CLOSED_UNPAID"));
     }
 }

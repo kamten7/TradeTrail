@@ -1,0 +1,14 @@
+package com.tradetrail.api;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.*;
+@Testcontainers
+class MySqlTransactionIT extends TransactionLifecycleTest {
+    @Container static final MySQLContainer<?> MYSQL=new MySQLContainer<>("mysql:8.4");
+    @DynamicPropertySource static void database(DynamicPropertyRegistry properties){
+        properties.add("spring.datasource.url",MYSQL::getJdbcUrl);
+        properties.add("spring.datasource.username",MYSQL::getUsername);
+        properties.add("spring.datasource.password",MYSQL::getPassword);
+    }
+}
