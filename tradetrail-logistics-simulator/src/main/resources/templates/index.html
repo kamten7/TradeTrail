@@ -28,7 +28,7 @@
         <form method="post" action="/events" class="fields">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <label>商城运单号<input name="trackingNo" required placeholder="MOCK-..."></label>
-            <label>节点<select name="status"><option>PICKED_UP</option><option>IN_TRANSIT</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>EXCEPTION</option></select></label>
+            <label>节点<select name="status"><option>PICKED_UP</option><option>IN_TRANSIT</option><option>OUT_FOR_DELIVERY</option><option>DELIVERED</option><option>EXCEPTION</option><option>RESUMED</option></select></label>
             <label>地点<input name="location" required placeholder="例如：香港分拨中心"></label>
             <button type="submit">保存并推送</button>
         </form>

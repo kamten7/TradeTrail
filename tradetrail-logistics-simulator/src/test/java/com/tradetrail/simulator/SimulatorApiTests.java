@@ -49,6 +49,6 @@ class RetryTrackingEventApiTest extends SimulatorApiTestBase {
         mvc.perform(post("/events/{eventId}/retry", "event-1")
                 .with(user("logistics").roles("LOGISTICS_OPERATOR")).with(csrf()))
                 .andExpect(status().is3xxRedirection());
-        verify(service).deliver("event-1");
+        verify(service).retry("event-1");
     }
 }

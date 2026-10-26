@@ -31,7 +31,7 @@ public class DeliveryController {
 
     @PostMapping("/events/{eventId}/retry")
     public String retry(@PathVariable String eventId) {
-        service.deliver(eventId);
+        service.retry(eventId);
         return "redirect:/";
     }
 }
