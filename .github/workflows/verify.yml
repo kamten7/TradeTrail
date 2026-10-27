@@ -1,0 +1,58 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            frontend/customer/package-lock.json
+            frontend/merchant/package-lock.json
+      - name: Backend, architecture and real MySQL regression
+        run: mvn -B -Pmysql-it verify
+      - name: Install frontend dependencies
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix frontend/customer
+          npm ci --prefix frontend/merchant
+      - name: Format and build both applications
+        run: |
+          npm --prefix frontend run format:check
+          npm --prefix frontend/customer run build
+          npm --prefix frontend/merchant run build
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance with isolated database
+        run: npm --prefix frontend run test:e2e
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          if-no-files-found: ignore
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+            frontend/playwright-report/
+            frontend/test-results/

@@ -18,11 +18,11 @@ function Login-Mall($name, $password) {
 
 function Mall-Post($path, $login, $body, $key) {
     $headers = @{ 'X-XSRF-TOKEN' = $login.Csrf }
-    if ($key) { $headers['Idempotency-Key'] = $key }
+    $headers['Idempotency-Key'] = if ($key) { $key } else { [guid]::NewGuid().ToString() }
     $args = @{ Uri = "$MallUrl$path"; WebSession = $login.WebSession; Method = 'Post'; Headers = $headers }
     if ($null -ne $body) {
         $args.ContentType = 'application/json'
-        $args.Body = ($body | ConvertTo-Json -Compress)
+        $args.Body = ($body | ConvertTo-Json -Compress -Depth 8)
     }
     return Invoke-RestMethod @args
 }
@@ -31,8 +31,16 @@ $merchant = Login-Mall 'merchant' 'merchant123'
 $customer = Login-Mall 'customer' 'customer123'
 $product = Mall-Post '/admin/products' $merchant @{ name = '冒烟测试商品'; description = '端到端验证'; priceCents = 2999; initialStock = 3 } $null
 Mall-Post "/admin/products/$($product.id)/publish" $merchant $null $null | Out-Null
-$order = Mall-Post '/orders' $customer @{ productId = $product.id; quantity = 1 } ([guid]::NewGuid().ToString())
-Mall-Post "/orders/$($order.id)/payments" $customer $null $null | Out-Null
+$order = Mall-Post '/orders' $customer @{ items = @(@{ productId = $product.id; quantity = 1; expectedPriceCents = 2999 }); address = '香港测试地址，测试收件人' } ([guid]::NewGuid().ToString())
+$payment = Mall-Post "/orders/$($order.id)/payments" $customer $null $null
+Mall-Post "/mock/checkout/$($payment.id)/complete" $customer @{ success = $true } $null | Out-Null
+$deadline = [DateTime]::UtcNow.AddSeconds(30)
+do {
+    $paid = Invoke-RestMethod -Uri "$MallUrl/orders/$($order.id)" -WebSession $customer.WebSession
+    if ($paid.status -eq 'AWAITING_SHIPMENT') { break }
+    Start-Sleep -Milliseconds 300
+} while ([DateTime]::UtcNow -lt $deadline)
+if ($paid.status -ne 'AWAITING_SHIPMENT') { throw '异步支付回调未完成' }
 $shipped = Mall-Post "/admin/orders/$($order.id)/shipments" $merchant $null $null
 
 $logisticsSession = [Microsoft.PowerShell.Commands.WebRequestSession]::new()

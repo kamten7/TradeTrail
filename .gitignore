@@ -7,3 +7,5 @@
 .env
 .idea/
 .vscode/
+**/test-results/
+**/playwright-report/
