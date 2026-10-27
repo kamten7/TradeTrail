@@ -23,6 +23,12 @@ public class TradeJobs {
     @Scheduled(fixedDelayString="${tradetrail.jobs.delay-ms:2000}") public void dispatch(){outbox.dispatch();}
     @Scheduled(fixedDelayString="${tradetrail.jobs.lifecycle-delay-ms:10000}") public void lifecycle(){
         for(long id:orders.expired())try{orders.expire(id);}catch(Exception e){LOG.error("订单超时处理失败 orderId={}",id,e);}
-        for(long id:fulfillment.autoConfirmDue(days))try{orders.autoConfirm(id);}catch(Exception e){LOG.error("自动确认失败 orderId={}",id,e);}
+        long cursor=0;
+        while(true){
+            var batch=fulfillment.autoConfirmDue(days,cursor);
+            if(batch.isEmpty())break;
+            for(long id:batch)try{orders.autoConfirm(id);}catch(Exception e){LOG.error("自动确认失败 orderId={}",id,e);}
+            cursor=batch.getLast();
+        }
     }
 }

@@ -26,7 +26,9 @@ class TransactionRegressionTest extends ApiTestBase {
     @Test void acceptedAfterSaleBlocksShipment() {
         long product = productWithStock(10);
         var order = orders.create("customer", product, 1, UUID.randomUUID().toString());
-        payments.completeMockPayment(order.id(), "customer");
+        var payment = payments.create(order.id(), "customer");
+        payments.simulate(payment.id(), "customer", true);
+        payments.receive("test-" + payment.id(), payment.id(), payment.amountCents(), "SUCCEEDED");
         cases.apply(order.id(), "customer", "不再需要");
         assertThrows(TradeFailure.class, () -> fulfillment.ship(order.id()));
     }

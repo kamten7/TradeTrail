@@ -9,4 +9,5 @@ public class PaymentQueryService {
     public boolean received(long order){return store.byOrder(order).map(p->"SUCCEEDED".equals(p.providerStatus())).orElse(false);}
     public Optional<PaymentAttempt> payment(long order){return store.byOrder(order);}
     public Optional<RefundAttempt> refund(long order){return store.byOrder(order).flatMap(p->store.refundForPayment(p.id()));}
+    public java.util.List<RefundAttempt> failedRefunds(){return store.failedRefunds();}
 }

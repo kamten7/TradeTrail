@@ -15,6 +15,7 @@ public class MyBatisPaymentStore implements PaymentStore {
     public boolean recordNotice(String id,long order){if(notices.count(id)>0)return false;return notices.insertNotice(id,order)==1;}
     public Optional<RefundAttempt> refund(String id){return Optional.ofNullable(mapper.refund(id));}
     public Optional<RefundAttempt> refundForPayment(String id){return Optional.ofNullable(mapper.refundForPayment(id));}
+    public java.util.List<RefundAttempt> failedRefunds(){return mapper.failedRefunds();}
     public void createRefund(RefundAttempt r){mapper.createRefund(r);}
     public void refundStatus(String id,String status,String error){mapper.refundStatus(id,status,error);}
 }

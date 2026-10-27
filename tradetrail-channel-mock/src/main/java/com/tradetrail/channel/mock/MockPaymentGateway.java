@@ -22,7 +22,7 @@ public class MockPaymentGateway implements PaymentGateway {
     public String channel(){return "MOCK";}
     public Notice verify(String raw,String timestamp,String signature){
         HmacProtocol.verify(secret,timestamp,raw,signature);
-        try{return json.readValue(raw,Notice.class);}catch(com.fasterxml.jackson.core.JsonProcessingException e){throw new TradeFailure("INVALID_PAYMENT_NOTICE","支付报文不合法");}
+        try{var notice=json.readValue(raw,Notice.class);if(notice==null)throw new TradeFailure("INVALID_PAYMENT_NOTICE","支付报文不能为空");return notice;}catch(com.fasterxml.jackson.core.JsonProcessingException e){throw new TradeFailure("INVALID_PAYMENT_NOTICE","支付报文不合法");}
     }
     public void deliver(Notice notice){
         try{

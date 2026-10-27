@@ -6,5 +6,5 @@ public interface ShipmentStore {
     Optional<Shipment> byTracking(String no);
     void create(long order,String no);
     void update(long order,String status,int progress,LocalDateTime occurred,boolean delivered);
-    List<Long> autoConfirmDue(int days);
+    List<Long> autoConfirmDue(int days,long afterOrderId);
 }

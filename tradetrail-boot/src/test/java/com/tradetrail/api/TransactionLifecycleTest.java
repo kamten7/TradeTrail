@@ -27,7 +27,30 @@ class TransactionLifecycleTest extends ApiTestBase {
     @Autowired JdbcTemplate jdbc;
     long productWithStock(int stock){var p=catalog.create("快照商品","规格：标准",1299,stock);catalog.publish(p.id());return p.id();}
     Order pending(int stock){return orders.create(UUID.randomUUID().toString(),productWithStock(stock),1,UUID.randomUUID().toString());}
-    Order paid(int stock){var o=pending(stock);return payments.completeMockPayment(o.id(),o.customer());}
+    Order paid(int stock){
+        var o=pending(stock);var payment=payments.create(o.id(),o.customer());
+        payments.simulate(payment.id(),o.customer(),true);
+        payments.receive("test-"+payment.id(),payment.id(),payment.amountCents(),"SUCCEEDED");
+        return orders.get(o.id(),o.customer());
+    }
+    @Test void resumedShipmentPreservesDispatchProgress(){
+        var o=paid(2);var shipped=fulfillment.ship(o.id());var now=LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(3);
+        fulfillment.receive(new Tracking(UUID.randomUUID().toString(),shipped.trackingNo(),"OUT_FOR_DELIVERY","派送点",now));
+        fulfillment.receive(new Tracking(UUID.randomUUID().toString(),shipped.trackingNo(),"EXCEPTION","派送点",now.plusMinutes(1)));
+        fulfillment.receive(new Tracking(UUID.randomUUID().toString(),shipped.trackingNo(),"RESUMED","派送点",now.plusMinutes(2)));
+        var summary=fulfillment.shipment(o.id(),o.customer()).orElseThrow();
+        assertEquals("OUT_FOR_DELIVERY",summary.status());assertEquals(3,summary.progress());
+    }
+    @Test void autoConfirmationScansPastTheFirstBatch(){
+        for(int i=0;i<101;i++){
+            var o=paid(1);fulfillment.ship(o.id());
+            jdbc.update("UPDATE shipment SET delivered_at=TIMESTAMPADD(DAY,-8,CURRENT_TIMESTAMP) WHERE order_id=?",o.id());
+        }
+        var first=fulfillment.autoConfirmDue(7,0);
+        assertEquals(100,first.size());
+        var second=fulfillment.autoConfirmDue(7,first.getLast());
+        assertFalse(second.isEmpty());assertTrue(second.getFirst()>first.getLast());
+    }
     void refund(long order){var r=paymentQuery.refund(order).orElseThrow();payments.executeRefund(r.id());cases.refunded(r.id());}
     @Test void hundredBuyersCompeteForTenUnits()throws Exception{
         long product=productWithStock(10);
@@ -119,7 +142,7 @@ class TransactionLifecycleTest extends ApiTestBase {
         }
     }
     @Test void trackingDeduplicatesAndLateEventsDoNotRegressDeliveredSummary(){
-        var o=paid(2);var shipped=fulfillment.ship(o.id());var now=LocalDateTime.now().minusMinutes(2);
+        var o=paid(2);var shipped=fulfillment.ship(o.id());var now=LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(2);
         var delivered=new Tracking(UUID.randomUUID().toString(),shipped.trackingNo(),"DELIVERED","收件点",now);
         fulfillment.receive(delivered);fulfillment.receive(delivered);
         fulfillment.receive(new Tracking(UUID.randomUUID().toString(),shipped.trackingNo(),"IN_TRANSIT","分拨中心",now.minusMinutes(10)));
@@ -129,7 +152,7 @@ class TransactionLifecycleTest extends ApiTestBase {
     }
     @Test void expiredOutboxLeaseIsRecoveredAndInboxIsIdempotent(){
         var o=pending(2);
-        jdbc.update("UPDATE outbox_event SET state='PROCESSING',next_attempt_at=TIMESTAMPADD(MINUTE,-2,CURRENT_TIMESTAMP) WHERE type='ORDER_CHANGED' AND aggregate_id=?",o.id().toString());
+        jdbc.update("UPDATE outbox_event SET state='PROCESSING',created_at=TIMESTAMPADD(DAY,-1,CURRENT_TIMESTAMP),next_attempt_at=TIMESTAMPADD(MINUTE,-2,CURRENT_TIMESTAMP) WHERE type='ORDER_CHANGED' AND aggregate_id=?",o.id().toString());
         dispatcher.dispatch();dispatcher.dispatch();
         assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM inbox_event i JOIN outbox_event o ON o.event_id=i.event_id WHERE o.aggregate_id=? AND o.type='ORDER_CHANGED'",Integer.class,o.id().toString()));
     }

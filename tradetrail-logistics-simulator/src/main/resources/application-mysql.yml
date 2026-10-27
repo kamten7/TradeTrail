@@ -1,5 +1,7 @@
 spring:
   datasource:
-    url: ${TRADETRAIL_LOGISTICS_DB_URL:jdbc:mysql://localhost:3310/tradetrail_logistics?useSSL=false&serverTimezone=Asia/Hong_Kong}
+    url: ${TRADETRAIL_LOGISTICS_DB_URL:jdbc:mysql://localhost:3310/tradetrail_logistics?useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}
     username: ${TRADETRAIL_DB_USER:tradetrail}
     password: ${TRADETRAIL_DB_PASSWORD:tradetrail}
+    hikari:
+      connection-init-sql: SET time_zone = '+00:00'

@@ -9,6 +9,7 @@ public interface PaymentStore {
     boolean recordNotice(String eventId,long orderId);
     Optional<RefundAttempt> refund(String id);
     Optional<RefundAttempt> refundForPayment(String payment);
+    java.util.List<RefundAttempt> failedRefunds();
     void createRefund(RefundAttempt refund);
     void refundStatus(String id,String status,String error);
 }

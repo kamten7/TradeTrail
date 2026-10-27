@@ -2,7 +2,6 @@ package com.tradetrail.application.payment;
 import com.tradetrail.application.order.OrderService;
 import com.tradetrail.application.integration.*;
 import com.tradetrail.domain.TradeFailure;
-import com.tradetrail.domain.order.Order;
 import com.tradetrail.domain.payment.*;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +14,13 @@ public class PaymentService {
     private final EventService events;
     private final CommandService commands;
     private final boolean mockEnabled;
+    private final int refundFailuresBeforeSuccess;
     public PaymentService(PaymentStore store,OrderService orders,EventService events,CommandService commands,
-                          @Value("${tradetrail.mock-payments.enabled:true}") boolean mockEnabled){
+                          @Value("${tradetrail.mock-payments.enabled:true}") boolean mockEnabled,
+                          @Value("${tradetrail.mock-payments.refund-failures-before-success:0}") int refundFailuresBeforeSuccess){
         this.store=store;this.orders=orders;this.events=events;this.commands=commands;this.mockEnabled=mockEnabled;
+        if(refundFailuresBeforeSuccess<0)throw new IllegalArgumentException("退款故障演练次数不能为负");
+        this.refundFailuresBeforeSuccess=refundFailuresBeforeSuccess;
     }
     @Transactional public PaymentAttempt create(long orderId,String customer){
         requireMock();var o=orders.lock(orderId);orders.get(orderId,customer);
@@ -38,6 +41,8 @@ public class PaymentService {
         return find(id);
     }
     @Transactional public void receive(String eventId,String paymentId,long amount,String result){
+        if(eventId==null||eventId.isBlank()||eventId.length()>100||paymentId==null||paymentId.isBlank()||result==null||amount<1)
+            throw new TradeFailure("INVALID_PAYMENT_NOTICE","支付通知字段不完整");
         var p=find(paymentId);orders.lock(p.orderId());
         commands.lock("payment-notice:"+eventId,paymentId+":"+amount+":"+result);
         p=find(paymentId);
@@ -62,9 +67,13 @@ public class PaymentService {
     }
     @Transactional public void executeRefund(String id){
         var r=refund(id);orders.lock(r.orderId());r=refund(id);
-        if("SUCCEEDED".equals(r.status()))return;
+        if(!"REQUESTED".equals(r.status()))return;
         var p=find(r.paymentId());
         if(r.amountCents()!=p.amountCents()||!"SUCCEEDED".equals(p.providerStatus()))throw new TradeFailure("REFUND_DENIED","退款金额与实收不符");
+        if(r.attempts()<refundFailuresBeforeSuccess){
+            store.refundStatus(id,"FAILED","模拟渠道暂时拒绝退款，请重试");
+            return;
+        }
         // Mock 的稳定退款号即渠道幂等号；成功记录与后续事实同事务提交。
         store.refundStatus(id,"SUCCEEDED",null);
         events.publish("REFUND_SUCCEEDED",id,r.caseId()==null?"":r.caseId().toString());
@@ -79,9 +88,5 @@ public class PaymentService {
     }
     public PaymentAttempt find(String id){return store.find(id).orElseThrow(()->new TradeFailure("PAYMENT_NOT_FOUND","支付不存在"));}
     public RefundAttempt refund(String id){return store.refund(id).orElseThrow(()->new TradeFailure("REFUND_NOT_FOUND","退款不存在"));}
-    // 保留给旧的内部测试调用；HTTP 收银台仅走 create/simulate/签名通知。
-    @Transactional public Order completeMockPayment(long id,String customer){
-        var p=create(id,customer);simulate(p.id(),customer,true);receive("internal-"+p.id(),p.id(),p.amountCents(),"SUCCEEDED");return orders.get(id,customer);
-    }
     private void requireMock(){if(!mockEnabled)throw new TradeFailure("CHANNEL_DISABLED","模拟支付已禁用");}
 }

@@ -117,7 +117,7 @@ class ReceiveTrackingApiTest extends ApiTestBase {
     @Test void acceptsSignedEventAndRejectsForgedSignature() throws Exception {
         String trackingNo = shippedOrder().get("trackingNo").asText();
         String raw = json.writeValueAsString(new Event(UUID.randomUUID().toString(), trackingNo,
-                "PICKED_UP", "香港", LocalDateTime.now()));
+                "PICKED_UP", "香港", LocalDateTime.now(java.time.ZoneOffset.UTC)));
         String timestamp = Long.toString(Instant.now().getEpochSecond());
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec("local-demo-secret-change-me".getBytes(StandardCharsets.UTF_8), "HmacSHA256"));

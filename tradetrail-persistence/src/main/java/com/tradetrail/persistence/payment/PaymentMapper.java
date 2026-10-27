@@ -10,5 +10,6 @@ public interface PaymentMapper {
     @Select("SELECT id,payment_id,order_id,case_id,amount_cents,status,reason,attempts,last_error FROM refund_attempt WHERE id=#{id}") RefundAttempt refund(String id);
     @Select("SELECT id,payment_id,order_id,case_id,amount_cents,status,reason,attempts,last_error FROM refund_attempt WHERE payment_id=#{id}") RefundAttempt refundForPayment(String id);
     @Insert("INSERT INTO refund_attempt(id,payment_id,order_id,case_id,amount_cents,status,reason) VALUES(#{id},#{paymentId},#{orderId},#{caseId},#{amountCents},#{status},#{reason})") int createRefund(RefundAttempt r);
-    @Update("UPDATE refund_attempt SET status=#{status},last_error=#{error},attempts=attempts+1 WHERE id=#{id}") int refundStatus(@Param("id") String id,@Param("status") String status,@Param("error") String error);
+    @Select("SELECT id,payment_id,order_id,case_id,amount_cents,status,reason,attempts,last_error FROM refund_attempt WHERE status='FAILED' ORDER BY order_id DESC") java.util.List<RefundAttempt> failedRefunds();
+    @Update("UPDATE refund_attempt SET status=#{status},last_error=#{error},attempts=attempts+CASE WHEN #{status} IN ('SUCCEEDED','FAILED') THEN 1 ELSE 0 END WHERE id=#{id}") int refundStatus(@Param("id") String id,@Param("status") String status,@Param("error") String error);
 }

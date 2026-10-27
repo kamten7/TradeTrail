@@ -29,7 +29,7 @@ public class DeliveryService {
           ||!List.of("PICKED_UP","IN_TRANSIT","OUT_FOR_DELIVERY","DELIVERED","EXCEPTION","RESUMED").contains(status))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"运单、节点或地点不合法");
         var row=new TrackingRow();row.eventId=UUID.randomUUID().toString();row.trackingNo=tracking.strip();row.status=status;
-        row.location=location.strip();row.occurredAt=LocalDateTime.now();row.deliveryState="PENDING";row.retryCount=0;mapper.insert(row);return row;
+        row.location=location.strip();row.occurredAt=LocalDateTime.now(ZoneOffset.UTC);row.deliveryState="PENDING";row.retryCount=0;mapper.insert(row);return row;
     }
     public List<TrackingRow> list(){return mapper.selectList(new QueryWrapper<TrackingRow>().orderByDesc("occurred_at"));}
     public void retry(String id){mapper.requeue(id);deliver(id);}

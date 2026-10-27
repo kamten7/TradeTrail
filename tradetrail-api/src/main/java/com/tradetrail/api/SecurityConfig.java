@@ -24,7 +24,20 @@ public class SecurityConfig {
             .exceptionHandling(errors->errors.authenticationEntryPoint((req,res,e)->{res.setStatus(401);res.setContentType("application/json;charset=UTF-8");json.writeValue(res.getOutputStream(),ApiErrorHandler.body("UNAUTHENTICATED","请先登录","",List.of()));})
                 .accessDeniedHandler((req,res,e)->{res.setStatus(403);res.setContentType("application/json;charset=UTF-8");json.writeValue(res.getOutputStream(),ApiErrorHandler.body("FORBIDDEN","无权访问或 CSRF 校验失败","",List.of()));}))
             .addFilterAfter(new IdempotencyFilter(commands,transactions,json),AuthorizationFilter.class)
-            .formLogin(Customizer.withDefaults()).logout(Customizer.withDefaults()).build();
+            .requestCache(cache -> cache.disable())
+            .formLogin(login -> login
+                .successHandler((req,res,authentication) -> {
+                    res.setStatus(200);
+                    res.setContentType("application/json;charset=UTF-8");
+                    json.writeValue(res.getOutputStream(), java.util.Map.of("user",authentication.getName(),
+                        "roles",authentication.getAuthorities().stream().map(Object::toString).toList()));
+                })
+                .failureHandler((req,res,error) -> {
+                    res.setStatus(401);
+                    res.setContentType("application/json;charset=UTF-8");
+                    json.writeValue(res.getOutputStream(),ApiErrorHandler.body("LOGIN_FAILED","账号或密码不正确","",List.of()));
+                }))
+            .logout(Customizer.withDefaults()).build();
     }
     @Bean PasswordEncoder passwordEncoder(){return PasswordEncoderFactories.createDelegatingPasswordEncoder();}
     @Bean UserDetailsService users(PasswordEncoder encoder){
