@@ -1,29 +1,226 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { session, login, logout } from './api'
-const user = ref('')
-const username = ref('merchant')
-const password = ref('')
-const busy = ref(false)
-const error = ref('')
-async function refresh() { const s = await session(); user.value = s.roles.includes('ROLE_MERCHANT_ADMIN') ? s.user : ''; if (s.user && !user.value) error.value = '请使用店家账号登录。' }
-async function signIn() { busy.value = true; error.value = ''; try { await login(username.value, password.value); await refresh() } catch (e) { error.value = (e as Error).message } finally { busy.value = false } }
-async function signOut() { await logout(); user.value = '' }
-onMounted(() => refresh().catch(e => error.value = e.message))
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage, type FormInstance } from 'element-plus'
+import { useSessionStore } from './stores/session'
+import AppIcon from './components/AppIcon.vue'
+const auth = useSessionStore()
+const route = useRoute()
+const form = ref({ username: 'merchant', password: '' })
+const formRef = ref<FormInstance>()
+const submitting = ref(false)
+const loginError = ref('')
+const rules = {
+  username: [{ required: true, message: '请输入店家账号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+}
+const navigation = [
+  { path: '/products', name: '商品与库存', icon: 'products' as const, sub: '管理商品' },
+  { path: '/orders', name: '订单履约', icon: 'orders' as const, sub: '处理订单' },
+  { path: '/after-sales', name: '售后管理', icon: 'afterSale' as const, sub: '服务客户' },
+  { path: '/recovery', name: '异常恢复', icon: 'recovery' as const, sub: '处理异常' },
+]
+const current = computed(
+  () => navigation.find((item) => route.path.startsWith(item.path)) || navigation[0],
+)
+async function submit() {
+  if (submitting.value || !(await formRef.value?.validate().catch(() => false))) return
+  submitting.value = true
+  loginError.value = ''
+  try {
+    await auth.signIn(form.value.username, form.value.password)
+    form.value.password = ''
+  } catch (error) {
+    loginError.value = (error as Error).message
+  } finally {
+    submitting.value = false
+  }
+}
+async function signOut() {
+  try {
+    await auth.signOut()
+  } catch (e) {
+    ElMessage.error((e as Error).message)
+  }
+}
+function expired() {
+  auth.user = ''
+  loginError.value = '登录已过期，请重新登录。'
+}
+onMounted(() => {
+  void auth.refresh()
+  window.addEventListener('tradetrail:unauthenticated', expired)
+})
+onUnmounted(() => window.removeEventListener('tradetrail:unauthenticated', expired))
 </script>
-<template><div class="merchant-shell"><header class="row panel"><h1>TradeTrail 店家管理台</h1><span>{{ user }}</span><button v-if="user" @click="signOut">退出</button></header>
-<nav v-if="user" class="row panel"><RouterLink to="/products">商品与库存</RouterLink><RouterLink to="/orders">订单履约</RouterLink><RouterLink to="/after-sales">售后审核</RouterLink><RouterLink to="/recovery">异常恢复</RouterLink></nav>
-<p v-if="error" class="error" role="alert">{{ error }}</p><form v-if="!user" class="panel" @submit.prevent="signIn"><h2>店家登录</h2><label>账号<input v-model="username" autocomplete="username" required></label><label>密码<input v-model="password" autocomplete="current-password" type="password" required></label><button :disabled="busy">登录</button></form><RouterView v-else /></div></template>
-<style>
-.merchant-shell { max-width: 1200px; margin: auto; padding: 24px; }
-.panel { padding: 24px; background: white; margin-bottom: 20px; border: 1px solid #e0e4e8; border-radius: 10px; }
-.row { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-label { display: block; margin: 12px 0; }
-input, textarea, select { padding: 10px; margin-left: 8px; max-width: 100%; border: 1px solid #c3cbd3; border-radius: 6px; font: inherit; box-sizing: border-box; }
-button { margin: 4px; padding: 10px 14px; border: 1px solid #b8c2cb; border-radius: 6px; background: white; font: inherit; cursor: pointer; }
-button:disabled { opacity: .5; cursor: wait; }
-.error { color: #a82020; overflow-wrap: anywhere; }
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; border-bottom: 1px solid #e0e4e8; padding: 12px; }
-.table-scroll { overflow-x: auto; }
-</style>
+<template>
+  <div v-if="auth.checking" class="boot-screen">
+    <span class="brand-mark">T</span>
+    <el-skeleton :rows="2" animated />
+    <p>正在连接店铺…</p>
+  </div>
+  <div v-else-if="!auth.user" class="login-screen">
+    <div class="login-brand">
+      <span class="brand-mark">T</span>
+      <strong>
+        TradeTrail
+        <span>商迹</span>
+      </strong>
+      <span class="login-edition">店家工作台</span>
+    </div>
+    <main class="login-layout">
+      <section class="login-story">
+        <span class="eyebrow">YOUR STORE. EVERY STEP.</span>
+        <h1>
+          每一笔生意，
+          <br />
+          都有迹可循
+          <span class="accent">。</span>
+        </h1>
+        <p>
+          从商品上架到订单送达，
+          <br />
+          让店铺的日常经营，清晰有序。
+        </p>
+        <div class="journey-preview" aria-hidden="true">
+          <div class="preview-top">
+            <span class="preview-dot"></span>
+            <span>订单履约旅程</span>
+            <span class="preview-badge">全程可追踪</span>
+          </div>
+          <div class="journey-step">
+            <span class="step-icon"><AppIcon name="products" /></span>
+            <div>
+              <strong>准备好商品</strong>
+              <small>商品、售价与库存，同步管理</small>
+            </div>
+            <AppIcon name="check" />
+          </div>
+          <div class="journey-step">
+            <span class="step-icon"><AppIcon name="orders" /></span>
+            <div>
+              <strong>处理每一份订单</strong>
+              <small>支付确认后，有序安排发货</small>
+            </div>
+            <AppIcon name="check" />
+          </div>
+          <div class="journey-step">
+            <span class="step-icon"><AppIcon name="afterSale" /></span>
+            <div>
+              <strong>照顾好每一位客户</strong>
+              <small>物流进度与售后处理，一目了然</small>
+            </div>
+            <AppIcon name="check" />
+          </div>
+        </div>
+      </section>
+      <section class="login-card">
+        <div class="login-card-icon"><AppIcon name="store" /></div>
+        <h2>欢迎回到商迹</h2>
+        <p class="muted">登录店家账号，开始管理你的店铺。</p>
+        <el-alert
+          v-if="loginError || auth.error"
+          :title="loginError || auth.error"
+          type="error"
+          :closable="false"
+          show-icon
+          class="login-alert"
+        />
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="rules"
+          label-position="top"
+          size="large"
+          @submit.prevent="submit"
+        >
+          <el-form-item label="店家账号" prop="username">
+            <el-input
+              v-model="form.username"
+              autocomplete="username"
+              placeholder="请输入店家账号"
+            />
+          </el-form-item>
+          <el-form-item label="登录密码" prop="password">
+            <el-input
+              v-model="form.password"
+              type="password"
+              show-password
+              autocomplete="current-password"
+              placeholder="请输入登录密码"
+              @keyup.enter="submit"
+            />
+          </el-form-item>
+          <el-button type="primary" native-type="submit" :loading="submitting" class="login-submit">
+            登录工作台
+            <AppIcon name="arrow" />
+          </el-button>
+        </el-form>
+        <div class="login-tip">
+          <AppIcon name="store" />
+          <span>店家专属入口 · 管理商品、订单与售后</span>
+        </div>
+        <el-button v-if="auth.error" text @click="auth.refresh">重新检查连接</el-button>
+      </section>
+    </main>
+    <footer class="login-footer">
+      <span>TradeTrail · 单店官方商城</span>
+      <span>让交易有序，让服务可追踪</span>
+    </footer>
+  </div>
+  <div v-else class="admin-shell">
+    <aside class="admin-sidebar">
+      <RouterLink to="/products" class="sidebar-brand">
+        <span class="brand-mark">T</span>
+        <div>
+          <strong>TradeTrail</strong>
+          <small>商迹 · 店家工作台</small>
+        </div>
+      </RouterLink>
+      <div class="store-chip">
+        <AppIcon name="store" />
+        <div>
+          <strong>官方店铺</strong>
+          <small>单店经营管理</small>
+        </div>
+        <span class="online-dot"></span>
+      </div>
+      <div class="nav-caption">店铺管理</div>
+      <nav>
+        <RouterLink
+          v-for="item in navigation"
+          :key="item.path"
+          :to="item.path"
+          class="sidebar-link"
+          :class="{ active: current.path === item.path }"
+        >
+          <AppIcon :name="item.icon" />
+          <span>{{ item.name }}</span>
+        </RouterLink>
+      </nav>
+      <div class="sidebar-bottom">
+        <span class="brand-initial">{{ auth.user.slice(0, 1).toUpperCase() }}</span>
+        <div>
+          <strong>{{ auth.user }}</strong>
+          <small>店家管理员</small>
+        </div>
+        <el-button text aria-label="退出登录" @click="signOut"><AppIcon name="logout" /></el-button>
+      </div>
+    </aside>
+    <div class="admin-main">
+      <header class="admin-header">
+        <div>
+          <span class="muted">工作台</span>
+          <span class="breadcrumb-divider">/</span>
+          <strong>{{ current.name }}</strong>
+        </div>
+        <span class="header-store">
+          <span class="online-dot"></span>
+          官方店铺
+        </span>
+      </header>
+      <main class="admin-content"><RouterView :key="auth.revision" /></main>
+      <footer class="admin-footer">TradeTrail 商迹 · 每一步，都有记录</footer>
+    </div>
+  </div>
+</template>
