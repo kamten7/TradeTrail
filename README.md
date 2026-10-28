@@ -1,144 +1,247 @@
-# TradeTrail · 商迹
+<h1 align="center">📦 TradeTrail 商迹商城</h1>
 
-**基于模块化单体的单店交易与履约演示系统。**
+<p align="center">
+  <strong>单店交易闭环 · 订单与库存一致性 · 异步模拟支付 · 独立物流推送 · 售后退款与失败恢复</strong>
+</p>
 
-TradeTrail 将商品、购物车、订单、库存、支付、物流和售后串成可调试的交易流程。项目包含用户商城、店家管理台，以及独立运行、通过签名 HTTP 回调推送轨迹的物流模拟服务。
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white" alt="Java 21">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 3.5.16">
+  <img src="https://img.shields.io/badge/MyBatis_Plus-3.5.17-4479A1" alt="MyBatis-Plus 3.5.17">
+  <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white" alt="MySQL 8.4">
+  <img src="https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white" alt="Vue 3">
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript 5.9">
+  <img src="https://img.shields.io/badge/Maven_modules-7-blue?logo=apachemaven&logoColor=white" alt="7 Maven modules">
+  <a href="https://github.com/kamten7/TradeTrail/actions/workflows/verify.yml"><img src="https://github.com/kamten7/TradeTrail/actions/workflows/verify.yml/badge.svg" alt="Verify CI"></a>
+</p>
 
-当前定位为课程演示与工程实践：支付和退款使用模拟渠道，订单、库存、交易记录及失败恢复使用真实持久化逻辑。已实现范围与未完成项分别记录，不将设计目标等同于生产就绪能力。
+<p align="center">
+  <a href="#-核心亮点">核心亮点</a> ·
+  <a href="#-系统架构">系统架构</a> ·
+  <a href="#-功能清单">功能清单</a> ·
+  <a href="#-快速开始">快速开始</a> ·
+  <a href="#-接口一览">接口一览</a> ·
+  <a href="#-实机展示">实机展示</a>
+</p>
 
-[快速启动](#快速启动) · [配置参考](#配置参考) · [测试与质量检查](#测试与质量检查) · [手工验收](docs/testing/manual-acceptance.md) · [接口与断点调试](docs/testing/debugging.md)
+---
 
-## 阅读指引
+## 📖 项目介绍
 
-| 你的目标 | 建议路径 |
-|---|---|
-| 第一次运行项目 | 环境要求 → 快速启动 → 跑通第一笔交易 |
-| 自己测试页面 | [手工验收](docs/testing/manual-acceptance.md)，包含独立测试环境和 14 个用例 |
-| 理解交易实现 | 系统结构 → 交易规则与数据一致性 → [业务与接口说明](docs/implementation-roadmap.md) |
-| 修改代码并回归 | 本地开发约定 → 测试与质量检查 → [开发规范](agent.md) |
-| 定位异常 | 常见问题 → [接口、断点与排错指南](docs/testing/debugging.md) |
-| 了解实现程度 | 当前边界 → [交付检查](docs/delivery-checklist.md)，设计目标见 [Plan.md](Plan.md) |
+**TradeTrail（商迹）** 是一个基于 **Spring Boot 多模块 + Vue 3 双前端** 的单店商城项目，围绕「**商品上架 → 购物车结算 → 下单预留 → 模拟支付 → 发货与物流 → 确认收货 → 售后退款**」实现交易流程。
 
-## 核心能力
+项目在一个仓库中维护三个操作入口：
 
-| 业务域 | 当前能力 |
-|---|---|
-| 商品与库存 | 商品创建、改价、上下架、库存调整及流水；历史订单保留成交快照 |
-| 购物车与结算 | 选中结算、地址快照、服务端核价、库存预留、稳定请求号重试 |
-| 订单 | 集中状态机、版本与状态审计、主动取消、超时关闭、确认收货 |
-| 支付与退款 | 独立支付尝试、异步签名通知、迟到支付补偿、整单退款、失败后同号重试 |
-| 履约与物流 | 售后阻断发货、独立运单、轨迹去重、摘要防倒退、异常恢复 |
-| 售后 | 审核通过或拒绝、仅退款、退货运单、验收与合格库存回补 |
-| 可靠性与验证 | outbox/inbox、租约恢复、人工重试、隔离测试库、MySQL 并发回归、浏览器验收 |
+| 入口 | 实现 | 主要职责 |
+|---|---|---|
+| 用户商城 | Vue 3 + TypeScript + Vant + Pinia | 浏览加购、结算付款、订单物流、收货与售后 |
+| 店家管理台 | Vue 3 + TypeScript + Element Plus + Pinia | 商品库存、订单发货、售后审核、失败任务恢复 |
+| 物流模拟端 | 独立 Spring Boot 服务 + Thymeleaf | 录入轨迹、持久化投递记录、签名推送与重试 |
 
-范围限定为**单店、单币种、单仓、单包裹、整单退款**。商品表单与接口金额单位均为分，页面展示为元。
+商城采用**模块化单体**，把业务域和基础设施分开；物流服务使用自己的数据库，只通过 HTTP 向商城推送事件。支付和退款使用 **mock 渠道**，用于验证状态、库存、回调和恢复，不发生真实资金交易。
 
-## 系统结构
+当前业务范围为**单店、单币种、单仓、单包裹、整单退款**，重点在于交易规则和异常路径的可验证实现。
+
+---
+
+## ✨ 核心亮点
+
+### 1. 订单状态机与库存预留共同约束交易
+
+下单、付款、取消、退款分别对应明确的库存转换，而不是只修改一个订单状态字段。
+
+| 动作 | 库存变化 | 业务约束 |
+|---|---|---|
+| 下单 | 可售 → 预留 | 服务端核价，多商品按固定顺序处理，库存不足整体回滚 |
+| 支付确认 | 预留 → 已售 | 验证渠道记录与金额，重复通知不重复确认 |
+| 未付关闭 | 预留 → 可售 | 取消、超时处理共用订单锁，已收到支付不能直接释放 |
+| 售后回补 | 已售 → 可售 | 未发货退款成功或退货质检合格后回补，保留唯一业务流水 |
+
+订单保存**商品名称、成交单价、数量和收货地址快照**；后续改价、下架不修改历史订单。状态转换写入版本和审计日志，售后冻结作为独立标记参与履约守卫。
+
+> 关键代码：[OrderState](tradetrail-domain/src/main/java/com/tradetrail/domain/order/OrderState.java)、[OrderService](tradetrail-application/src/main/java/com/tradetrail/application/order/OrderService.java)、[InventoryService](tradetrail-application/src/main/java/com/tradetrail/application/inventory/InventoryService.java)
+
+### 2. 异步支付通知与迟到支付补偿
+
+模拟收银台登记渠道结果后，由 outbox 驱动 **签名 HTTP 通知**，订单在通知验证通过后再推进。支付尝试、渠道结果、通知和退款分别留有记录。
 
 ```mermaid
-flowchart LR
-    Customer[用户商城 · Vue / Vant] -->|同源 /api 代理| Mall[商城服务 · Spring Boot]
-    Merchant[店家管理台 · Vue / Element Plus] -->|同源 /api 代理| Mall
-    Mall --> MallDB[(商城数据库)]
-    Operator[物流操作页面 · Thymeleaf] --> Simulator[独立物流模拟服务]
-    Simulator --> LogisticsDB[(物流数据库)]
-    Simulator -->|签名 HTTP 事件| Mall
-    Mall -->|outbox 驱动| Mock[模拟支付适配器]
-    Mock -->|签名 HTTP 通知| Mall
+sequenceDiagram
+    autonumber
+    participant U as 用户商城
+    participant M as 商城服务
+    participant D as 商城数据库
+    participant O as Outbox 投递器
+    participant P as Mock 支付适配器
+    U->>M: 创建支付尝试 / 确认模拟付款
+    M->>D: 保存渠道结果和待投递事件
+    O->>D: 领取到期事件
+    O->>P: 投递支付通知
+    P->>M: 带 HMAC 签名的 HTTP 回调
+    M->>D: 校验、去重、锁定订单
+    alt 订单仍待支付
+        M->>D: 推进待发货，预留转已售
+    else 订单已未付关闭
+        M->>D: 记录迟到支付，创建补偿退款
+    end
+    U->>M: 查询支付与退款结果
 ```
 
-商城按业务域划分模块，物流模拟服务不访问商城数据库。订单与库存事实以数据库为准；Redis 仅作为可选开发服务，当前不参与业务处理。
+- **稳定请求号**：相同成功写请求可重放；网络中断后前端保留原幂等键，避免响应丢失导致重复下单。
+- **关单竞争保护**：支付、取消和超时使用同一订单锁序列化；关单后到账不重新占库存，走补偿退款。
+- **可复现失败**：配置首次 mock 退款失败，店家能查看原因并沿用原退款号重试。
 
-| 目录 | 职责 |
-|---|---|
-| `tradetrail-domain` | 领域对象、订单状态机与仓储端口 |
-| `tradetrail-application` | 业务用例、事务协调、事件与恢复 |
-| `tradetrail-persistence` | MyBatis-Plus 与交易 SQL 实现 |
-| `tradetrail-api` | 角色化 HTTP 接口、会话、鉴权、CSRF、幂等与错误合同 |
-| `tradetrail-channel-mock` | 模拟支付通知协议与适配器 |
-| `tradetrail-boot` | 商城启动、定时任务、配置、迁移与集成测试 |
-| `tradetrail-logistics-simulator` | 独立物流录入、事件持久化与推送 |
-| `frontend/customer` / `frontend/merchant` | 用户商城 / 店家管理台 |
-| `frontend/shared` / `frontend/tests` | 共享请求与模型 / Playwright 验收 |
-| `docs` / `ai-agent/tools` | 设计和调试文档 / 辅助脚本 |
+> 关键代码：[PaymentService](tradetrail-application/src/main/java/com/tradetrail/application/payment/PaymentService.java)、[MockPaymentGateway](tradetrail-channel-mock/src/main/java/com/tradetrail/channel/mock/MockPaymentGateway.java)、[IdempotencyFilter](tradetrail-api/src/main/java/com/tradetrail/api/IdempotencyFilter.java)
 
-商城依赖方向为 `API → Application → Domain`；持久层和渠道适配器实现外部交互，启动模块负责装配。业务域包括 `catalog`、`cart`、`order`、`inventory`、`payment`、`fulfillment`、`after_sale`，事件投递与恢复位于 `integration`。各域通过应用接口协调，架构测试检查框架依赖、持久层访问和仓储归属。
+### 3. 售后与履约联动，退款与实物回补分别判断
 
-### 技术选择
+- **申请即冻结履约**：受理售后后，订单暂停发货和确认收货；审核拒绝则释放冻结。
+- **按履约阶段分流**：未发货走整单仅退款；已发货或已完成走退货退款。
+- **验收决定回补**：退货质检合格才回补可售库存；“不回补库存”仍可继续退款。
+- **保留完成事实**：已完成订单退款后仍保持完成状态，售后与退款进度独立展示。
 
-| 层次 | 技术 | 在本项目中的用途 |
+合格商品回库后，即使退款暂时失败，库存也不会因重新提交退款而重复增加。当前每单只允许一个售后工单。
+
+> 关键代码：[AfterSaleService](tradetrail-application/src/main/java/com/tradetrail/application/after_sale/AfterSaleService.java)、[FulfillmentService](tradetrail-application/src/main/java/com/tradetrail/application/fulfillment/FulfillmentService.java)
+
+### 4. 独立物流服务与可恢复事件投递
+
+物流操作者在独立服务输入运单和节点。事件先写物流数据库，再通过 HMAC-SHA256 签名 HTTP 回调推送商城，浏览器不持有服务间密钥。
+
+- **事件去重**：重复通知不会重复插入轨迹或改变库存。
+- **摘要防倒退**：迟到轨迹保留在时间线，当前摘要不回退；妥投后不因旧节点重新变成运输中。
+- **异常可恢复**：`EXCEPTION → RESUMED` 保留已有派送进度。
+- **失败可重试**：网络或服务端错误按退避重试；4xx 拒绝留给人工核对，耗尽重试后可手动恢复。
+
+商城 outbox 同样使用持久化租约与失败队列，消费者保存 inbox 去重记录。定时任务可重新进入，执行前重新检查业务条件。
+
+> 关键代码：[DeliveryService](tradetrail-logistics-simulator/src/main/java/com/tradetrail/simulator/DeliveryService.java)、[OutboxDispatcher](tradetrail-application/src/main/java/com/tradetrail/application/integration/OutboxDispatcher.java)、[TradeJobs](tradetrail-boot/src/main/java/com/tradetrail/TradeJobs.java)
+
+---
+
+## 🧱 系统架构
+
+### 模块与依赖
+
+```mermaid
+flowchart TD
+    Boot[tradetrail-boot · 商城装配与任务] --> Api[tradetrail-api · HTTP 与安全]
+    Boot --> Persistence[tradetrail-persistence · 数据库适配]
+    Boot --> Channel[tradetrail-channel-mock · 支付适配]
+    Api --> Application[tradetrail-application · 业务用例]
+    Application --> Domain[tradetrail-domain · 领域与端口]
+    Persistence --> Domain
+    Channel --> Domain
+    Customer[用户端 · Vant] -->|HTTP| Api
+    Merchant[店家端 · Element Plus] -->|HTTP| Api
+    Logistics[tradetrail-logistics-simulator · 独立服务] -->|签名 HTTP 回调| Api
+    Persistence --> MallDB[(商城数据库)]
+    Logistics --> LogisticsDB[(物流数据库)]
+```
+
+Controller 按**角色 + 业务资源**组织，应用层协调事务，领域层不依赖 Spring 或 ORM；持久层和渠道适配器实现领域端口。物流服务不依赖商城领域 JAR，也不访问商城表。
+
+### 技术栈
+
+| 类别 | 技术 | 项目用途 |
 |---|---|---|
-| Web 与安全 | Spring MVC、Spring Security | REST、角色与资源归属校验、会话和 CSRF |
-| 业务协调 | Spring 事务、领域状态机 | 订单与库存原子更新、动作守卫及审计 |
-| 持久化 | MyBatis-Plus、显式 Mapper SQL | 通用 CRUD、行锁、条件更新、唯一约束 |
-| 数据库与迁移 | MySQL 8.4、H2、Flyway | 开发持久化、隔离测试、版本化表结构 |
-| 事件恢复 | 数据库 outbox/inbox、定时任务 | 可重试投递、租约恢复、消费去重 |
-| 页面 | Vue 3、TypeScript、Pinia、Vant / Element Plus | 独立用户端与店家端、共享请求合同 |
-| 外部模拟 | 独立 Spring Boot + Thymeleaf 物流服务、mock 支付适配器 | 物流 HTTP 边界及异步支付通知 |
-| 验证 | JUnit 5、MockMvc、Testcontainers、ArchUnit、Playwright | 接口、事务与并发、架构和真实浏览器回归 |
+| 核心框架 | Java 21 · Spring Boot 3.5.16 | REST 服务、依赖装配、事务与定时任务 |
+| 持久化 | MyBatis-Plus 3.5.17 | 单表 CRUD、行锁与关键条件更新 SQL |
+| 数据库 | MySQL 8.4 · H2 · Flyway | 开发持久化、轻量启动、版本化迁移 |
+| 安全 | Spring Security · Session · CSRF | 角色、归属与写请求防护 |
+| 前端 | Vue 3 · TypeScript · Vite · Pinia | 用户与店家独立应用，共享请求和类型 |
+| 组件库 | Vant 4 · Element Plus 2 | 移动商城与店家工作台 |
+| 外部交互 | RestClient · HMAC-SHA256 | 支付通知、独立物流推送 |
+| 质量验证 | JUnit 5 · MockMvc · Testcontainers · ArchUnit · Playwright | 接口、并发、架构与浏览器验收 |
 
-## 交易规则与数据一致性
+Docker Compose 还提供可选 Redis 开发服务，当前业务未接入 Redis，也未引入消息队列；库存和订单事实存储在数据库中。
 
-### 订单主流程
+---
+
+## 💡 功能清单
+
+### 店家管理台
+
+| 模块 | 能力 |
+|---|---|
+| 商品与库存 | 新建、编辑、上下架、改价、库存调整及原因记录 |
+| 订单履约 | 状态与客户筛选、订单明细、地址快照、发货与运单查看 |
+| 售后管理 | 申请审核、审核理由、退货验收、质检是否回补 |
+| 异常恢复 | 查询失败退款、同号重试、耗尽自动重试任务的人工恢复 |
+
+### 用户商城
+
+| 模块 | 能力 |
+|---|---|
+| 商品 | 浏览、页面搜索、售价与可售库存查看、加购 |
+| 购物车 | 数量修改、选中、移除、结算报价、收货信息 |
+| 订单 | 下单、取消、模拟付款、状态查询、确认收货 |
+| 物流 | 运单与本地轨迹时间线查看 |
+| 售后 | 申请售后、查看审核与退款结果、填写退货运单 |
+
+### 物流模拟端
+
+运单节点录入 · 独立事件存储 · 签名推送 · 投递结果与失败原因 · 自动退避重试 · 人工重试。
+
+---
+
+## 🔄 核心业务流程
+
+1. **商品准备**：店家创建商品、录入库存并上架。
+2. **购物车结算**：用户选择商品与数量、填写地址，服务端重新核价并预留库存。
+3. **支付确认**：用户确认模拟付款，签名通知验证后推进待发货。
+4. **订单履约**：店家检查售后冻结后发货，生成唯一 `MOCK-...` 运单。
+5. **物流推送**：物流端录入节点，商城保存轨迹并更新摘要。
+6. **确认收货**：用户主动确认，或妥投后满足定时规则自动完成。
+7. **售后处理**：审核后按仅退款或退货退款处理，记录验收、回补和退款结果。
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PENDING_PAYMENT: 下单并预留库存
-    PENDING_PAYMENT --> AWAITING_SHIPMENT: 有效支付通知
-    PENDING_PAYMENT --> CLOSED_UNPAID: 用户取消或未付超时
-    AWAITING_SHIPMENT --> SHIPPED: 无售后冻结时发货
-    SHIPPED --> COMPLETED: 用户确认或妥投后定时确认
-    AWAITING_SHIPMENT --> CLOSED_REFUNDED: 整单退款成功
+    [*] --> PENDING_PAYMENT: 下单预留
+    PENDING_PAYMENT --> AWAITING_SHIPMENT: 支付通知确认
+    PENDING_PAYMENT --> CLOSED_UNPAID: 用户取消或超时
+    AWAITING_SHIPMENT --> SHIPPED: 发货
+    SHIPPED --> COMPLETED: 用户确认或自动确认
+    AWAITING_SHIPMENT --> CLOSED_REFUNDED: 仅退款成功
     SHIPPED --> CLOSED_REFUNDED: 退货退款成功
 ```
 
-`fulfillment_hold` 独立记录售后冻结，阻止发货和确认收货。物流的 `DELIVERED` 只更新物流事实，主订单仍等待确认；已完成订单售后退款成功后保留 `COMPLETED`，退款结果单独展示。关单后的迟到支付登记为 `LATE_PAYMENT` 并发起补偿退款，订单保持关闭。
+> 状态：`PENDING_PAYMENT 待支付` · `AWAITING_SHIPMENT 待发货` · `SHIPPED 已发货` · `COMPLETED 已完成` · `CLOSED_UNPAID 未付关闭` · `CLOSED_REFUNDED 退款关闭`。售后冻结和物流状态独立记录；已完成订单退款后不改变主状态。
 
-### 关键约束
+---
 
-| 约束 | 实现行为 |
-|---|---|
-| 报价以服务端为准 | 结算重新验证价格、上架状态和库存；保存商品名、单价、数量与收货地址快照 |
-| 库存状态可追踪 | 下单 `available → reserved`；付款 `reserved → sold`；未付关闭 `reserved → available` |
-| 回补与实物一致 | 未发货退款成功后回补；已发货退货在质检合格时回补，不合格不回补 |
-| 竞争操作序列化 | 支付、关单、发货和售后使用订单行锁；多商品下单按商品 ID 固定顺序处理 |
-| 成功请求可安全重放 | 业务写请求使用稳定 `Idempotency-Key`；相同键异参拒绝，前端在网络失败后保留原键 |
-| 通知不能重复记账 | 支付与物流通知验签并按事件 ID 去重，重复投递不重复推进订单或库存 |
-| 投递与业务分开恢复 | 状态与 outbox 同事务保存；投递失败保留重试信息，耗尽重试后由店家人工恢复 |
+## 📁 目录结构
 
-默认商城连接采用 READ COMMITTED，MyBatis 本地缓存范围为 STATEMENT，避免在等待锁后继续读取旧快照。时间存储及无时区物流报文统一按 UTC 解释，用户端转换为本地时间。
+```text
+TradeTrail/
+├── tradetrail-domain/                # 领域对象、状态机与仓储端口
+├── tradetrail-application/           # 商品、购物车、订单、库存、支付、履约、售后用例
+├── tradetrail-persistence/           # MyBatis-Plus、交易 SQL 与仓储实现
+├── tradetrail-api/                   # 按角色和资源分组的接口、安全及幂等处理
+├── tradetrail-channel-mock/          # 模拟支付适配器和通知签名协议
+├── tradetrail-boot/                  # 商城启动、Flyway 迁移、任务与集成测试
+├── tradetrail-logistics-simulator/   # 独立物流服务、操作页、迁移与投递恢复
+├── frontend/
+│   ├── customer/                    # Vant 用户商城
+│   ├── merchant/                    # Element Plus 店家管理台
+│   ├── shared/                      # 请求、幂等重试和业务类型
+│   └── tests/                       # Playwright 浏览器验收
+├── docs/                            # 设计、调试、验收记录与实机截图
+├── ai-agent/tools/smoke.ps1          # 商城到独立物流的 HTTP 冒烟脚本
+├── docker/mysql/init/               # 物流数据库初始化脚本
+├── compose.yaml                     # MySQL 与可选 Redis 开发服务
+└── Plan.md                          # 项目设计目标
+```
 
-### 数据记录与排查入口
+---
 
-| 记录 | 主要表 |
-|---|---|
-| 商品与库存 | `product`、`stock`、`stock_adjustment`、`stock_ledger` |
-| 订单与快照 | `sales_order`、`order_item`、`inventory_reservation`、`order_status_log` |
-| 支付与退款 | `payment_attempt`、`payment_notice`、`refund_attempt` |
-| 售后与操作审计 | `after_sale_case`、`after_sale_action` |
-| 运单与轨迹 | `shipment`、`tracking_event` |
-| 幂等与消息恢复 | `idempotency_record`、`outbox_event`、`inbox_event` |
-| 物流服务独立存储 | `sim_tracking_event`，位于物流库 |
+## 🚀 快速开始
 
-表结构以[商城迁移](tradetrail-boot/src/main/resources/db/migration)和[物流迁移](tradetrail-logistics-simulator/src/main/resources/db/migration)为准。按订单追踪支付、退款、状态日志及 outbox 的只读查询见[数据库核对指南](docs/testing/debugging.md)。
+### 环境要求
 
-## 环境要求
+JDK **21**、Maven **3.9**、建议 Node.js **22.12+**。以下命令采用 **PowerShell 7**；使用 MySQL 或 Testcontainers 时需先启动 Docker Desktop。
 
-| 工具 | 要求与用途 |
-|---|---|
-| JDK | 21 |
-| Maven | 3.9 系列 |
-| Node.js | 建议 22.12+，用于两端构建和浏览器验收 |
-| PowerShell | 本文命令按 PowerShell 7 编写；冒烟脚本使用 7 的 HTTP 参数 |
-| Docker Desktop | MySQL 开发和 Testcontainers 集成测试需要；H2 启动不需要 |
-
-后端采用 Spring Boot 3.5、MyBatis-Plus、Flyway；前端采用 Vue 3、TypeScript、Vite、Pinia。依赖版本以各模块构建文件与 lockfile 为准。
-
-## 快速启动
-
-以下终端均从仓库根目录开始。首次运行建议使用 H2；需要一套与既有开发数据分离的测试环境时，直接按[手工验收文档](docs/testing/manual-acceptance.md)启动。
-
-### 1. 安装依赖并打包
+### 1. 获取代码与安装依赖
 
 ```powershell
 git clone https://github.com/kamten7/TradeTrail.git
@@ -148,33 +251,36 @@ npm ci --prefix frontend/customer
 npm ci --prefix frontend/merchant
 ```
 
-已经克隆项目时，直接进入仓库根目录，省略 `git clone`。打包前先停止本项目正在运行的旧 JAR，避免 Windows 文件占用；不要在 JAR 运行时执行 `clean`。
+### 2. 启动后端
 
-### 2. 启动商城与物流服务
-
-终端 A：
+**方式 A：H2 轻量体验**，不需要 Docker，分别在仓库根目录的两个终端执行：
 
 ```powershell
 java -jar tradetrail-boot/target/tradetrail-boot-0.1.0-SNAPSHOT.jar --spring.profiles.active=default
 ```
 
-终端 B：
-
 ```powershell
 java -jar tradetrail-logistics-simulator/target/tradetrail-logistics-simulator-0.1.0-SNAPSHOT.jar --spring.profiles.active=default
 ```
 
-默认配置使用 `data/` 下的 H2 文件数据库，重启保留数据。若终端设置过 `SPRING_DATASOURCE_*` 等自定义参数，应先检查是否覆盖默认配置。两个服务出现 `Started ...Application` 后再启动前端。
+默认在 `data/` 保存两份 H2 文件库，重启保留数据。工作目录保持为仓库根；终端若有 `SPRING_DATASOURCE_*` 覆盖变量，需核对实际连接目标。
 
-### 3. 启动两端页面
+**方式 B：MySQL 开发环境**，先启动数据库并等待 `healthy`：
 
-终端 C：
+```powershell
+docker compose up -d mysql
+docker compose ps
+```
+
+随后将两个服务启动参数中的 `--spring.profiles.active=default` 改为 `--spring.profiles.active=mysql`。MySQL 主机端口为 `3310`，商城库 `tradetrail`，物流库 `tradetrail_logistics`，本地数据库账号为 `tradetrail / tradetrail`。H2 与 MySQL 的数据不自动迁移。
+
+### 3. 启动页面
+
+两个新终端分别执行：
 
 ```powershell
 npm --prefix frontend/customer run dev
 ```
-
-终端 D：
 
 ```powershell
 npm --prefix frontend/merchant run dev
@@ -185,139 +291,109 @@ npm --prefix frontend/merchant run dev
 | 用户商城 | http://127.0.0.1:5173 | `customer / customer123` |
 | 店家管理台 | http://127.0.0.1:5174 | `merchant / merchant123` |
 | 物流模拟端 | http://localhost:8081 | `logistics / logistics123` |
-| 商城会话检查 | http://127.0.0.1:8080/session | 匿名也可返回 JSON |
 
-**用户、店家使用不同浏览器配置文件，或普通窗口与无痕窗口。** Cookie 不按端口隔离，两个普通标签页无法保持独立角色会话。物流端使用 `localhost`，商城两端使用 `127.0.0.1`，减少同名会话 Cookie 冲突。
+用户和店家请使用**不同浏览器配置文件，或普通窗口与无痕窗口**，Cookie 不按端口隔离。新库没有预置商品，先在店家端创建并上架。需要独立数据、逐项断言及故障演练时，从[手工验收文档](docs/testing/manual-acceptance.md)开始。
 
-前端仅代理 `/api`，后端实际路径不带此前缀。修改商城端口时，需同时修改前端 `TRADETRAIL_API_TARGET`、支付 `tradetrail.payment.callback-url` 和物流 `tradetrail.mall-url`，详见[调试配置](docs/testing/debugging.md)。
+---
 
-### 4. 跑通第一笔交易
+## ⚙️ 配置与数据库
 
-店家创建并上架商品 → 用户加购、填写地址、结算并模拟付款 → 店家发货 → 物流端提交轨迹 → 用户查看物流并确认收货。
-
-接着用新订单验证取消、仅退款、退货退款和失败重试。每步操作、预期状态和库存断言见[手工验收清单](docs/testing/manual-acceptance.md)。
-
-## 使用 MySQL
-
-```powershell
-docker compose up -d mysql
-docker compose ps
-```
-
-等待 MySQL 为 `healthy` 后，停止原 H2 服务，在两个独立终端分别运行：
-
-```powershell
-java -jar tradetrail-boot/target/tradetrail-boot-0.1.0-SNAPSHOT.jar --spring.profiles.active=mysql
-```
-
-```powershell
-java -jar tradetrail-logistics-simulator/target/tradetrail-logistics-simulator-0.1.0-SNAPSHOT.jar --spring.profiles.active=mysql
-```
-
-| 项目 | 默认值 |
+| 文件或参数 | 作用 |
 |---|---|
-| MySQL 主机端口 | `127.0.0.1:3310` |
-| 商城数据库 | `tradetrail` |
-| 物流数据库 | `tradetrail_logistics` |
-| 本地数据库账号 | `tradetrail / tradetrail` |
-| 可选 Redis | `docker compose up -d redis`；主机端口 `6382` |
+| [商城 application.yml](tradetrail-boot/src/main/resources/application.yml) | 8080 端口、默认 H2、UTC、事务隔离与 MyBatis 配置 |
+| [商城 application-mysql.yml](tradetrail-boot/src/main/resources/application-mysql.yml) | 商城 MySQL URL、账号与连接时区 |
+| [物流 application.yml](tradetrail-logistics-simulator/src/main/resources/application.yml) | 8081 端口、独立 H2 与商城推送地址 |
+| [物流 application-mysql.yml](tradetrail-logistics-simulator/src/main/resources/application-mysql.yml) | 独立物流 MySQL 配置 |
+| `TRADETRAIL_API_TARGET` | 两个前端的商城代理目标，默认 `http://127.0.0.1:8080` |
+| `tradetrail.payment.callback-url` | mock 支付通知目标，默认 `http://127.0.0.1:8080` |
+| `TRADETRAIL_MALL_URL` | 物流推送目标，默认 `http://localhost:8080` |
+| `TRADETRAIL_LOGISTICS_SECRET` | 两服务共享的物流签名密钥 |
 
-MySQL 数据保存在 Docker 命名卷；H2 与 MySQL 数据不自动迁移。初始化 SQL 只在新 MySQL 数据卷创建时运行，旧卷缺少物流库时参见[数据库排错](docs/testing/debugging.md)。Flyway 自动执行各服务迁移，不要用删卷或修改迁移历史来处理启动错误。
+业务表由[商城 Flyway 迁移](tradetrail-boot/src/main/resources/db/migration)和[物流 Flyway 迁移](tradetrail-logistics-simulator/src/main/resources/db/migration)分别管理。Docker 的[初始化脚本](docker/mysql/init/01-logistics.sql)负责首次建立物流数据库和授权；已有数据卷不会自动重跑脚本。
 
-## 配置参考
+Compose 当前只启动中间件，两套前端与两个后端仍需单独运行。完整环境变量、端口联动、静态部署和 Nginx 示例收录在[开发与部署参考](docs/development-and-deployment.md)。
 
-后端参数可追加到启动命令，例如 `--server.port=18080`；前端变量在启动 Vite 的终端设置。配置源见[商城默认配置](tradetrail-boot/src/main/resources/application.yml)、[商城 MySQL 配置](tradetrail-boot/src/main/resources/application-mysql.yml)和[物流默认配置](tradetrail-logistics-simulator/src/main/resources/application.yml)。
+---
 
-### 服务与数据库
+## 🔌 接口一览
 
-| 配置 | 适用端 | 默认值 / 说明 |
-|---|---|---|
-| `server.port` | 商城 / 物流 | `8080` / `8081` |
-| `spring.profiles.active` | 两个后端 | 默认 H2；`mysql` 使用 MySQL profile |
-| `spring.datasource.url` | 两个后端 | 可直接覆盖 JDBC URL；默认文件相对于进程工作目录 |
-| `TRADETRAIL_DB_URL` | 商城 MySQL | `localhost:3310/tradetrail`，完整 URL 见配置文件 |
-| `TRADETRAIL_LOGISTICS_DB_URL` | 物流 MySQL | `localhost:3310/tradetrail_logistics` |
-| `TRADETRAIL_DB_USER` / `TRADETRAIL_DB_PASSWORD` | 两个后端 MySQL | 本地演示均为 `tradetrail` |
-| `TRADETRAIL_API_TARGET` | 两个前端 | `http://127.0.0.1:8080`，修改后重启 Vite |
-| `tradetrail.payment.callback-url` | 商城 | `http://127.0.0.1:8080`，mock 支付通知回调目标 |
-| `tradetrail.mall-url` / `TRADETRAIL_MALL_URL` | 物流 | `http://localhost:8080`，商城推送目标 |
-| `TRADETRAIL_LOGISTICS_SECRET` | 两个后端 | 双方必须一致；替代本地演示物流密钥 |
-| `tradetrail.payment.secret` | 商城 mock 支付 | 替代本地演示支付签名密钥；不要提交真实密钥 |
+浏览器通过 `/api` 代理访问商城，直接调用后端时不带 `/api`。认证采用 **Session + CSRF**，业务写请求另带 `Idempotency-Key`；支付和物流回调使用各自的签名协议。
 
-商城改到 18080 时，需要协调三个方向，不能只改 HTTP 监听端口：
+| 调用方 | 核心接口 | 方法 | 用途 |
+|---|---|---|---|
+| 会话 | `/session`、`/login` | GET / POST | 获取身份和 CSRF、表单登录 |
+| 用户 | `/products`、`/products/{id}` | GET | 商品列表与详情 |
+| 用户 | `/cart/items`、`/cart/items/{id}` | GET / POST；PUT / DELETE | 购物车查询、加购、修改与移除 |
+| 用户 | `/cart/checkout`、`/orders` | POST | 购物车结算或直接下单 |
+| 用户 | `/orders/{id}/payments` | GET / POST | 查询支付结果或创建支付尝试 |
+| 用户 | `/mock/checkout/{id}/complete` | POST | 模拟收银台提交结果 |
+| 用户 | `/orders/{id}/cancel`、`/orders/{id}/confirm` | POST | 取消或确认收货 |
+| 用户 | `/orders/{id}/tracking`、`/orders/{id}/history` | GET | 物流轨迹、订单状态记录 |
+| 用户 | `/orders/{id}/after-sales`、`/after-sales/{id}/return` | POST | 售后申请、提交退货运单 |
+| 店家 | `/admin/products`、`/admin/products/{id}` | GET / POST；PUT | 商品查询、创建与维护 |
+| 店家 | `/admin/orders/{id}/shipments` | POST | 订单发货 |
+| 店家 | `/admin/after-sales/{id}/decisions` | POST | 审核售后申请 |
+| 店家 | `/admin/after-sales/{id}/receipts` | POST | 退货验收与质检回补 |
+| 店家 | `/admin/refunds/failed`、`/admin/refunds/{id}/retry` | GET / POST | 查询失败退款、原号重试 |
+| 店家 | `/admin/outbox`、`/admin/outbox/{id}/retry` | GET / POST | 失败任务查询与恢复 |
+| 回调 | `/callbacks/payments/mock`、`/callbacks/logistics/mock` | POST | 支付与物流签名通知 |
 
-```powershell
-# 商城终端，选择需要的 profile
-java -jar tradetrail-boot/target/tradetrail-boot-0.1.0-SNAPSHOT.jar --spring.profiles.active=default --server.port=18080 --tradetrail.payment.callback-url=http://127.0.0.1:18080
-```
+金额字段使用**整数分**。可复制请求、统一错误响应、权限与幂等验证见[接口调试指南](docs/testing/debugging.md)。
 
-```powershell
-# 物流终端
-java -jar tradetrail-logistics-simulator/target/tradetrail-logistics-simulator-0.1.0-SNAPSHOT.jar --spring.profiles.active=default --tradetrail.mall-url=http://127.0.0.1:18080
-```
+---
 
-```powershell
-# 两个前端的启动终端分别设置，再执行各自的 npm run dev
-$env:TRADETRAIL_API_TARGET = 'http://127.0.0.1:18080'
-```
+## 📸 实机展示
 
-### 业务规则与故障演练
+以下为本地 Chromium 验收截图，使用测试账号与演示数据；物流模拟服务仍通过独立页面操作。
 
-| 启动参数 | 默认值 | 说明 |
-|---|---:|---|
-| `tradetrail.payment-minutes` | 30 | 新订单付款期限，分钟 |
-| `tradetrail.auto-confirm-days` | 7 | 妥投后的自动确认等待天数 |
-| `tradetrail.after-sale-days` | 15 | 已完成订单的售后申请期限，演示规则 |
-| `tradetrail.jobs.delay-ms` | 2000 | 商城 outbox / 物流恢复任务的执行间隔 |
-| `tradetrail.jobs.lifecycle-delay-ms` | 10000 | 商城超时关单与自动确认间隔 |
-| `tradetrail.jobs.enabled` | true | 商城定时任务开关，关闭后异步支付也不会自动投递 |
-| `tradetrail.mock-payments.enabled` | true | 允许 mock 新支付与收银台操作 |
-| `tradetrail.mock-payments.refund-failures-before-success` | 0 | 每笔模拟退款成功前的故意失败次数 |
+### 店家管理台
 
-退款失败演练可追加 `--tradetrail.mock-payments.refund-failures-before-success=1`。随后新建订单并申请退款，首次执行会记录失败；店家在“异常恢复”沿用原退款号重试。售后在此期间保持退款处理中，合格退货的实物可能已经回库，重试不得再次回补。完整步骤及恢复默认配置的方法见[故障演练](docs/testing/manual-acceptance.md)。
+**商品与库存** — 商品状态、可售库存、改价、上下架与库存调整。
 
-## 接口约定
+<p align="center">
+  <img src="docs/images/merchant-products.png" alt="店家管理台商品与库存页面" width="92%">
+</p>
 
-| 项目 | 约定 |
+**售后管理** — 审核结果、退货运单、验收和退款进度。
+
+<p align="center">
+  <img src="docs/images/merchant-after-sales.png" alt="店家管理台售后退款完成页面" width="92%">
+</p>
+
+### 用户商城
+
+**订单与售后结果** — 完成订单的退款结果独立显示，保留订单履约完成状态。
+
+<p align="center">
+  <img src="docs/images/customer-refund-mobile.png" alt="移动端订单与退货退款完成页面" width="34%">
+</p>
+
+---
+
+## 🧪 工程质量
+
+| 项目 | 当前实现与验证方式 |
 |---|---|
-| 地址 | 浏览器访问 `/api/...`；调试工具直连商城时去掉 `/api` |
-| 登录 | GET `/session` 获取 CSRF → POST `/login` → 再次 GET `/session` 更新 token；登录成功返回 JSON |
-| 业务写请求 | 携带会话 Cookie、`X-XSRF-TOKEN` 与不超过 100 字符的 `Idempotency-Key` |
-| 金额 | `priceCents`、`totalCents` 等字段均为整数分 |
-| 下单 | 提交 `items`、每项期望价格与 `address`，由服务端核价 |
-| 分页 | 支持分页的接口以 `page=0` 开始，`size` 为 1–100；并非所有列表已使用数据库分页 |
-| 支付与物流回调 | 分别校验渠道 HMAC 协议和事件身份，不使用浏览器 CSRF 合同 |
+| 接口与领域回归 | 入参、权限、归属、状态机、库存和幂等测试 |
+| 真实数据库回归 | Testcontainers MySQL 8.4，验证并发、事务回滚与重复通知 |
+| 架构约束 | ArchUnit 检查领域层依赖、持久层隔离与仓储归属 |
+| 浏览器验收 | Playwright 自动启动独立内存库和双前端，验证交易、响应丢失、退款失败恢复及窄屏 |
+| 两服务冒烟 | PowerShell 脚本验证商品到独立物流签名推送的 HTTP 链路 |
+| 持续集成 | [GitHub Actions Verify](.github/workflows/verify.yml)：后端、MySQL、格式、构建、Chromium 与报告归档 |
+| 故障演练 | 可配置首次退款失败、加速关单和自动确认，页面支持人工恢复 |
 
-业务失败响应示例，字段值随请求和状态变化：
-
-```json
-{
-  "code": "ORDER_TRANSITION_DENIED",
-  "message": "当前订单不允许此操作",
-  "traceId": "example-trace-id",
-  "currentStatus": "PENDING_PAYMENT",
-  "allowedActions": ["PAY", "CANCEL"]
-}
-```
-
-400 通常表示参数不合法，401 为未登录，403 为权限或 CSRF 拒绝，404 为资源不存在，409 为业务冲突，500 为服务异常。排错时同时保留 HTTP 状态、`code`、`traceId` 和发生时间。可执行的请求示例见[接口调试指南](docs/testing/debugging.md)，当前接口变化见[业务与接口说明](docs/implementation-roadmap.md)。
-
-## 测试与质量检查
-
-均从仓库根目录执行：
+已记录的 2026-10-27 本机验收结果：**69 项普通后端与物流测试、13 项 MySQL 集成测试、3 项浏览器场景通过**。这是历史验证记录，当前提交的 CI 结果以页首徽章和 Actions 报告为准。100 买家抢 10 件的用例验证无超卖，不作为容量压测结论。
 
 ```powershell
+# 后端与真实 MySQL（后者需要 Docker）
 mvn test
 mvn -Pmysql-it verify
+
+# 两端类型检查与生产构建
 npm --prefix frontend/customer run build
 npm --prefix frontend/merchant run build
-```
 
-`mvn test` 使用隔离内存库；`mysql-it` 额外创建独立 MySQL 8.4 容器，不使用开发库。定向回归和测试报告位置见[接口与断点调试](docs/testing/debugging.md)。
-
-浏览器验收首次准备与执行：
-
-```powershell
+# 浏览器验收：先完成 Maven 打包和前端依赖安装
 npm ci --prefix frontend
 Push-Location frontend
 npx playwright install chromium
@@ -326,148 +402,34 @@ npm run test:e2e
 Pop-Location
 ```
 
-先完成 Maven 打包和两端依赖安装。Playwright 自动启动隔离后端及两端页面，使用 `18080 / 15173 / 15174`，结束后关闭；不要占用这些端口。清除旧的 `MERCHANT_URL`、`CUSTOMER_URL` 环境变量后运行，避免误连接手工环境。报告位于 `frontend/playwright-report`，截图位于 `frontend/test-results`。
+Playwright 使用 `18080 / 15173 / 15174`，须保证端口空闲并清除遗留 `MERCHANT_URL`、`CUSTOMER_URL` 覆盖变量。两后端手工运行时执行 `./ai-agent/tools/smoke.ps1`，会向连接的库写入演示数据。
 
-两个手工服务运行时，也可以执行：
+---
 
-```powershell
-./ai-agent/tools/smoke.ps1
-```
+## 🗺️ 路线图与实现边界
 
-该脚本会向当前连接的库写入演示商品、订单和物流事件，成功输出 `PASS`。GitHub Actions 配置见 [verify.yml](.github/workflows/verify.yml)，本机历史验收结果见[交付记录](docs/delivery-checklist.md)；本机通过不等同于远端 CI 已通过。
+- [x] 用户、店家与独立物流三端交易主流程
+- [x] 商品与订单快照、库存预留、状态机及审计
+- [x] 异步模拟支付、超时关闭、迟到支付补偿
+- [x] 售后冻结、审核、退货验收与整单退款
+- [x] outbox/inbox、物流恢复、失败退款人工重试
+- [x] MySQL 并发回归、架构检查、浏览器验收与 CI 配置
+- [ ] 容量压测、多实例与进程故障专项验证
+- [ ] 退货寄回超时自动终止、物流异常独立工单
+- [ ] 大数据量列表查询与数据库分页完善
+- [ ] 真实支付/退款渠道及渠道结果查询
 
-### 测试分层与结果读取
+演示账号和默认密钥用于本地体验；当前没有完整账号管理或生产身份体系。完整目标与差距见 [Plan.md](Plan.md) 和[交付检查](docs/delivery-checklist.md)。
 
-| 层次 | 验证重点 | 结果位置 |
-|---|---|---|
-| 领域与架构 | 状态转移、模块依赖、仓储归属 | `tradetrail-boot/target/surefire-reports` |
-| 接口与事务 | 入参、鉴权、归属、幂等、库存与售后规则 | `tradetrail-boot/target/surefire-reports` |
-| MySQL 集成 | 条件更新、竞争通知、事务回滚、售后与发货竞争 | `tradetrail-boot/target/failsafe-reports` |
-| 物流入口 | 页面、事件创建与重试入口 | `tradetrail-logistics-simulator/target/surefire-reports` |
-| 浏览器 | 页面与真实接口、下单响应丢失、付款、履约、退货退款及失败恢复 | `frontend/playwright-report`、`frontend/test-results` |
+## 📚 项目文档
 
-GitHub Actions 在 `main` 推送、Pull Request 和手动触发时执行：后端及 MySQL 验证 → 安装前端依赖 → 格式检查与两端构建 → Chromium 验收 → 上传 `verification-reports`。工作流配置不代表任何特定提交已经通过；应查看对应提交的运行结果和 artifact。
-
-现有 100 个买家竞争 10 件库存的用例验证“只有 10 单成功且无超卖”，不能据此推导 QPS、延迟或生产容量。测试报告是具体环境与具体提交的记录，历史验证数量不作为后续版本的固定承诺。
-
-## 本地开发约定
-
-1. 从仓库根 `pom.xml` 导入 Maven 工程，设置 JDK 21。IDE 启动商城类 `com.tradetrail.TradeTrailApplication`，物流类 `com.tradetrail.simulator.LogisticsSimulatorApplication`；两者工作目录都设为仓库根，避免创建意外的相对路径数据库。
-2. 前端分别维护应用依赖，共享请求与模型放在 `frontend/shared`。三个 `package-lock.json` 分别对应两个应用和验收工具；首次安装按所在目录运行 `npm ci`。
-3. 后端规则变更核对入口、事务、库存与状态、回调、页面及文档。HTTP 接口按角色与业务资源分组，每个方法和路径有独立测试类；缺陷修复补可复现的回归测试。
-4. 新表或字段通过各服务自己的 Flyway 版本迁移交付。不要修改已经在目标数据库执行的历史迁移来实现新结构。
-5. 提交前运行受影响的测试和构建，检查 diff。提交说明包括行为变化、验证结果和已知限制，格式沿用 `类型(范围): 中文说明`，例如 `fix(order): 修复售后冻结下的履约校验`。
-
-前端格式化与检查（需先安装 `frontend` 的验收工具依赖）：
-
-```powershell
-npm --prefix frontend run format
-npm --prefix frontend run format:check
-```
-
-仅调试特定后端用例时，可按[定向回归命令](docs/testing/debugging.md)缩小范围；最终交付再运行与变更对应的集成与浏览器检查。前端热更新不替代生产构建，修改 Java 后只运行 `mvn test` 也不会更新 Playwright 启动的 JAR。
-
-## 本机演示部署
-
-仓库提供开发启动和可独立打包的产物，目前 Docker Compose 只编排 MySQL 与 Redis，未编排商城、物流服务或前端。演示部署由两个 Java 进程、两套静态前端和独立数据库组成。
-
-| 产物 | 生成方式 | 运行方式 |
-|---|---|---|
-| 商城 JAR | 根目录 `mvn package` | `java -jar tradetrail-boot/target/tradetrail-boot-0.1.0-SNAPSHOT.jar` |
-| 物流 JAR | 同一次 Maven 构建 | `java -jar tradetrail-logistics-simulator/target/tradetrail-logistics-simulator-0.1.0-SNAPSHOT.jar` |
-| 用户端静态文件 | `npm --prefix frontend/customer run build` | 部署 `frontend/customer/dist` |
-| 店家端静态文件 | `npm --prefix frontend/merchant run build` | 部署 `frontend/merchant/dist` |
-
-静态构建文件不包含运行中的 Vite 代理。使用 Nginx 等静态服务器时，需要单独处理 `/api/` 反向代理和 Vue History 路由回退。以下为 Nginx `http` 上下文中的示例，域名、绝对目录及后端地址应替换成自己的演示环境；配置文件不由本项目自动安装。
-
-```nginx
-server {
-    listen 80;
-    server_name shop.tradetrail.local;
-    root D:/JavaCode/TradeTrail/frontend/customer/dist;
-    index index.html;
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-
-server {
-    listen 80;
-    server_name merchant.tradetrail.local;
-    root D:/JavaCode/TradeTrail/frontend/merchant/dist;
-    index index.html;
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8080/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-
-`proxy_pass` 末尾 `/` 用于去掉 `/api/` 前缀。两个域名须先通过本地名称解析指向演示服务器，分别使用各自的会话 Cookie。物流操作页仍由物流服务提供，不属于上述静态产物；mock 支付和物流回调按各服务配置直连商城。
-
-部署后依次检查：页面可打开 → 直接刷新 `/orders` 正常 → `/api/session` 返回 JSON → 登录及写操作成功 → 一笔支付能到账 → 物流能推送。当前演示账户定义在安全配置中，没有注册、密码管理或完整身份管理系统；公网生产部署不在本节的验收范围内。
-
-## 数据、日志与日常维护
-
-| 项目 | 约定 |
+| 文档 | 内容 |
 |---|---|
-| H2 数据 | 默认商城 `data/tradetrail.mv.db`、物流 `data/logistics.mv.db`；相对于进程工作目录 |
-| MySQL 数据 | Docker 命名卷保存，两服务使用各自数据库 |
-| 应用日志 | 默认输出到启动终端，未配置统一日志平台或固定日志文件 |
-| 请求追踪 | 业务失败响应与订单状态日志中的 `traceId`，结合发生时间定位 |
-| 生成文件 | `target`、`dist`、`node_modules`、测试报告及本地数据按 `.gitignore` 排除 |
-| 停止服务 | 手工启动终端按 Ctrl+C；停止数据库可执行 `docker compose stop mysql redis` |
-
-演示数据需要保留时，H2 应先停服务再备份对应文件，MySQL 使用数据库备份工具并同时保留迁移版本。更新前记录 Git 提交和实际 JDBC URL，避免把切换 profile 当成数据迁移。新建一套测试数据可换用[手工验收文档](docs/testing/manual-acceptance.md)中的独立路径，保留原库用于问题复现。
-
-异常恢复页分别展示失败退款和耗尽重试的 outbox 任务；仍处于 `PENDING` 或 `PROCESSING` 的投递不一定出现于人工队列。排查时关联支付号、退款号与 outbox 的 `aggregate_id`，不能只看订单主状态。
-
-## 常见问题
-
-| 现象 | 首先检查 |
-|---|---|
-| 页面出现“暂时无法连接商城服务” | 先请求商城 `/session`，再请求前端 `/api/session`，区分后端与代理问题 |
-| 登录后另一端变成无权限 | 用户和店家是否在同一浏览器会话中互相覆盖身份 |
-| 付款后仍待支付 | mock 收银台是否成功、调度是否开启、支付回调 URL 是否匹配端口 |
-| 售后保持退款处理中 | 查退款 FAILED 还是 SUCCEEDED；分别检查人工重试或退款成功事件投递 |
-| 物流被拒绝或持续重试 | 运单是否已创建、密钥与时间是否一致、商城是否可达 |
-| 重启后“原数据消失” | 启动 profile、JDBC URL、工作目录是否改变，是否使用了内存数据库 |
-| MySQL 缺少物流数据库 | 旧数据卷不会重新运行初始化脚本，按调试文档补库和授权 |
-| JAR 无法覆盖或数据库文件被锁 | 原项目进程是否仍在运行，是否有两个进程打开同一 H2 文件 |
-| 浏览器验收未启动服务或端口冲突 | 清除遗留 URL 覆盖变量，并确认 18080、15173、15174 空闲 |
-
-完整状态码、SQL、断点和故障复现步骤见[接口、断点与排错指南](docs/testing/debugging.md)。反馈问题时提供 Git 提交、启动参数、复现步骤、记录 ID、预期与实际结果、脱敏错误响应；可直接使用[验收记录模板](docs/testing/manual-acceptance.md)。
-
-## 文档导航
-
-| 文档 | 阅读目的 |
-|---|---|
-| [手工验收与故障演练](docs/testing/manual-acceptance.md) | 准备测试数据、逐项操作页面、记录预期与实际结果 |
-| [接口、断点与排错指南](docs/testing/debugging.md) | 复制接口请求、核对数据库、定位交易和环境问题 |
-| [业务流程与接口说明](docs/implementation-roadmap.md) | 理解当前实现、接口变化和状态约定 |
-| [交付检查与验证记录](docs/delivery-checklist.md) | 查看已验证范围和剩余差距 |
-| [项目方案](Plan.md) / [后端设计](docs/design/TradeTrail-后端设计文档.md) | 理解设计目标和技术边界 |
-| [订单状态机](docs/design/01-订单状态机.md) / [业务分层](docs/design/02-业务分层设计图.md) / [模块设计](docs/design/03-模块设计图.md) | 查看领域规则及架构图 |
-| [开发规范](agent.md) | 模块边界、接口组织、测试和提交前检查 |
-
-## 当前边界
-
-- 支付与退款为 mock，不发生真实资金交易，演示账号与默认签名密钥仅用于本地环境。
-- 已覆盖并发正确性回归，尚无容量压测结论或多实例生产验证。
-- 退货寄回超时自动终止、物流异常独立工单、真实支付网关及全面数据库分页尚未完成。
-- 物流协议使用 UTC 时间；新旧商城、前端与物流服务应配套更新。存量数据升级演练不在现有新库测试结论内。
-
-完整差距保留在[交付检查](docs/delivery-checklist.md)，后续扩展以该记录和设计文档共同约束。
+| [手工验收与故障演练](docs/testing/manual-acceptance.md) | 独立环境、14 个用例、库存断言和记录模板 |
+| [接口、断点与排错](docs/testing/debugging.md) | 可执行请求、幂等与补偿验证、IDE 断点、SQL |
+| [开发与部署参考](docs/development-and-deployment.md) | 配置参数、接口约定、开发流程、Nginx 示例与维护 |
+| [业务流程与接口说明](docs/implementation-roadmap.md) | 已实现的调用链、状态和接口变更 |
+| [交付检查](docs/delivery-checklist.md) | 验收证据及未完成项 |
+| [后端设计](docs/design/TradeTrail-后端设计文档.md) / [订单状态机](docs/design/01-订单状态机.md) | 设计方案与规则 |
+| [业务分层](docs/design/02-业务分层设计图.md) / [模块设计](docs/design/03-模块设计图.md) | 模块边界与协作关系 |
+| [开发规范](agent.md) | 编码、接口组织和上下游检查要求 |
