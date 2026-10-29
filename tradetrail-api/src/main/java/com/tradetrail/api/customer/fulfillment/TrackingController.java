@@ -3,7 +3,6 @@ package com.tradetrail.api.customer.fulfillment;
 import com.tradetrail.application.fulfillment.FulfillmentService;
 import com.tradetrail.application.order.OrderService;
 import com.tradetrail.domain.fulfillment.Tracking;
-import com.tradetrail.domain.order.Order;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +27,8 @@ public class TrackingController {
 
     @GetMapping("/orders/{id}/shipment")
     public Object shipment(@PathVariable long id, Principal principal) {
-        return fulfillment.shipment(id,principal.getName()).<Object>map(value->value).orElse(Map.of("orderId",id,"trackingNo",""));
+        return fulfillment.shipment(id, principal.getName())
+                .<Object>map(value -> value)
+                .orElse(Map.of("orderId", id, "trackingNo", ""));
     }
 }

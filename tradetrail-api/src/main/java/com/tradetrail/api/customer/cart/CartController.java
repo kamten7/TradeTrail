@@ -1,7 +1,10 @@
 package com.tradetrail.api.customer.cart;
 
+import com.tradetrail.api.customer.order.OrderController.CreateOrder;
+import com.tradetrail.api.customer.order.OrderController.Line;
 import com.tradetrail.application.cart.CartService;
 import com.tradetrail.domain.cart.CartItem;
+import com.tradetrail.domain.order.Order;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import java.security.Principal;
@@ -13,24 +16,30 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class CartController {
     @PostMapping("/cart/checkout")
-    public com.tradetrail.domain.order.Order checkout(@Valid @RequestBody com.tradetrail.api.customer.order.OrderController.CreateOrder request,
-            @org.springframework.web.bind.annotation.RequestHeader("Idempotency-Key") String key,Principal principal) {
-        return cart.checkout(principal.getName(),request.items().stream().map(com.tradetrail.api.customer.order.OrderController.Line::command).toList(),request.address(),key);
+    public Order checkout(@Valid @RequestBody CreateOrder request, @RequestHeader("Idempotency-Key") String key,
+            Principal principal) {
+        return cart.checkout(principal.getName(), request.items().stream().map(Line::command).toList(),
+                request.address(), key);
     }
+
     private final CartService cart;
 
     public CartController(CartService cart) {
         this.cart = cart;
     }
 
-    public record AddItem(@Min(1) long productId, @Min(1) int quantity) {}
-    public record UpdateItem(@Min(1) int quantity, boolean selected) {}
+    public record AddItem(@Min(1) long productId, @Min(1) int quantity) {
+    }
+
+    public record UpdateItem(@Min(1) int quantity, boolean selected) {
+    }
 
     @GetMapping("/cart/items")
     public List<CartItem> list(Principal principal) {

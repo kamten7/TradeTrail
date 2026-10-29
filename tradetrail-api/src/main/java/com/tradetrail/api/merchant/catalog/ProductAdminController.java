@@ -13,17 +13,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ProductAdminController {
-    public record UpdateProduct(@NotBlank String name,String description,@Min(1) long priceCents,boolean published) {}
-
-    @org.springframework.web.bind.annotation.PutMapping("/admin/products/{id}")
-    public Product update(@PathVariable long id,@Valid @RequestBody UpdateProduct request) {
-        return catalog.update(id,request.name(),request.description(),request.priceCents(),request.published());
+    public record UpdateProduct(@NotBlank String name, String description, @Min(1) long priceCents, boolean published) {
     }
+
+    @PutMapping("/admin/products/{id}")
+    public Product update(@PathVariable long id, @Valid @RequestBody UpdateProduct request) {
+        return catalog.update(id, request.name(), request.description(), request.priceCents(), request.published());
+    }
+
     private final CatalogService catalog;
     private final InventoryService inventory;
 
@@ -33,9 +36,11 @@ public class ProductAdminController {
     }
 
     public record CreateProduct(@NotBlank String name, String description, @Min(1) long priceCents,
-                                @Min(0) int initialStock) {
+            @Min(0) int initialStock) {
     }
-    public record StockAdjustment(int delta, @NotBlank String reason) {}
+
+    public record StockAdjustment(int delta, @NotBlank String reason) {
+    }
 
     @GetMapping("/admin/products")
     public List<Product> list() {
@@ -44,7 +49,8 @@ public class ProductAdminController {
 
     @PostMapping("/admin/products")
     public ResponseEntity<Product> create(@Valid @RequestBody CreateProduct request) {
-        Product product = catalog.create(request.name(), request.description(), request.priceCents(), request.initialStock());
+        Product product = catalog.create(request.name(), request.description(), request.priceCents(),
+                request.initialStock());
         return ResponseEntity.created(URI.create("/products/" + product.id())).body(product);
     }
 

@@ -4,6 +4,7 @@ import com.tradetrail.application.after_sale.AfterSaleService;
 import com.tradetrail.domain.after_sale.AfterSale;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.security.Principal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,11 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AfterSaleController {
-    public record ReturnParcel(@NotBlank @jakarta.validation.constraints.Size(max=100) String trackingNo) {}
-    @PostMapping("/after-sales/{id}/return")
-    public AfterSale returnParcel(@PathVariable long id,@Valid @RequestBody ReturnParcel request,Principal principal) {
-        return cases.returnParcel(id,principal.getName(),request.trackingNo());
+    public record ReturnParcel(@NotBlank @Size(max = 100) String trackingNo) {
     }
+
+    @PostMapping("/after-sales/{id}/return")
+    public AfterSale returnParcel(@PathVariable long id, @Valid @RequestBody ReturnParcel request,
+            Principal principal) {
+        return cases.returnParcel(id, principal.getName(), request.trackingNo());
+    }
+
     private final AfterSaleService cases;
 
     public AfterSaleController(AfterSaleService cases) {
