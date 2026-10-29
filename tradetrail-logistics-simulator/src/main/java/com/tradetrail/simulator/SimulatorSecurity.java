@@ -16,7 +16,9 @@ public class SimulatorSecurity {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(auth -> auth.anyRequest().hasRole("LOGISTICS_OPERATOR"))
-                .formLogin(Customizer.withDefaults()).logout(Customizer.withDefaults()).build();
+                .formLogin(Customizer.withDefaults())
+                .logout(Customizer.withDefaults())
+                .build();
     }
 
     @Bean
@@ -27,6 +29,8 @@ public class SimulatorSecurity {
     @Bean
     UserDetailsService users(PasswordEncoder encoder) {
         return new InMemoryUserDetailsManager(User.withUsername("logistics")
-                .password(encoder.encode("logistics123")).roles("LOGISTICS_OPERATOR").build());
+                .password(encoder.encode("logistics123"))
+                .roles("LOGISTICS_OPERATOR")
+                .build());
     }
 }

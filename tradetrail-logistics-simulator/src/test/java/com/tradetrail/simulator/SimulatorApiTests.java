@@ -20,35 +20,40 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 abstract class SimulatorApiTestBase {
-    @Autowired MockMvc mvc;
-    @MockitoBean DeliveryService service;
+    @Autowired
+    MockMvc mvc;
+    @MockitoBean
+    DeliveryService service;
 }
 
 class GetSimulatorPageApiTest extends SimulatorApiTestBase {
-    @Test void showsOperatorPage() throws Exception {
+    @Test
+    void showsOperatorPage() throws Exception {
         when(service.list()).thenReturn(List.of());
-        mvc.perform(get("/").with(user("logistics").roles("LOGISTICS_OPERATOR")))
-                .andExpect(status().isOk());
+        mvc.perform(get("/").with(user("logistics").roles("LOGISTICS_OPERATOR"))).andExpect(status().isOk());
     }
 }
 
 class CreateTrackingEventApiTest extends SimulatorApiTestBase {
-    @Test void savesAndAttemptsDelivery() throws Exception {
+    @Test
+    void savesAndAttemptsDelivery() throws Exception {
         TrackingRow row = new TrackingRow();
         row.eventId = "event-1";
         when(service.create(anyString(), anyString(), anyString())).thenReturn(row);
-        mvc.perform(post("/events").with(user("logistics").roles("LOGISTICS_OPERATOR")).with(csrf())
-                .param("trackingNo", "MOCK-123").param("status", "PICKED_UP").param("location", "香港"))
-                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/events").with(user("logistics").roles("LOGISTICS_OPERATOR"))
+                .with(csrf())
+                .param("trackingNo", "MOCK-123")
+                .param("status", "PICKED_UP")
+                .param("location", "香港")).andExpect(status().is3xxRedirection());
         verify(service).deliver("event-1");
     }
 }
 
 class RetryTrackingEventApiTest extends SimulatorApiTestBase {
-    @Test void retriesExistingEvent() throws Exception {
-        mvc.perform(post("/events/{eventId}/retry", "event-1")
-                .with(user("logistics").roles("LOGISTICS_OPERATOR")).with(csrf()))
-                .andExpect(status().is3xxRedirection());
+    @Test
+    void retriesExistingEvent() throws Exception {
+        mvc.perform(post("/events/{eventId}/retry", "event-1").with(user("logistics").roles("LOGISTICS_OPERATOR"))
+                .with(csrf())).andExpect(status().is3xxRedirection());
         verify(service).retry("event-1");
     }
 }

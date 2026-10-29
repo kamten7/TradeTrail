@@ -22,8 +22,7 @@ public class DeliveryController {
     }
 
     @PostMapping("/events")
-    public String create(@RequestParam String trackingNo, @RequestParam String status,
-                         @RequestParam String location) {
+    public String create(@RequestParam String trackingNo, @RequestParam String status, @RequestParam String location) {
         TrackingRow event = service.create(trackingNo, status, location);
         service.deliver(event.eventId);
         return "redirect:/";
