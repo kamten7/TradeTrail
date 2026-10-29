@@ -226,11 +226,15 @@ TradeTrail/
 │   ├── merchant/                    # Element Plus 店家管理台
 │   ├── shared/                      # 请求、幂等重试和业务类型
 │   └── tests/                       # Playwright 浏览器验收
-├── docs/                            # 设计、调试、验收记录与实机截图
+├── docs/                            # Plan、设计、测试、部署与实机截图
+│   ├── Plan.md                      # 范围、实施状态、验收证据与后续工作
+│   ├── design/                      # 后端、状态机、业务分层与模块设计
+│   ├── testing.md                   # 手工验收、接口调试及自动化
+│   └── development-and-deployment.md # 配置、部署与排错
 ├── ai-agent/tools/smoke.ps1          # 商城到独立物流的 HTTP 冒烟脚本
 ├── docker/mysql/init/               # 物流数据库初始化脚本
 ├── compose.yaml                     # MySQL 与可选 Redis 开发服务
-└── Plan.md                          # 项目设计目标
+└── agent.md                         # Agent 开发规范（AGENTS.md 为入口）
 ```
 
 ---
@@ -247,9 +251,11 @@ JDK **21**、Maven **3.9**、建议 Node.js **22.12+**。以下命令采用 **Po
 git clone https://github.com/kamten7/TradeTrail.git
 Set-Location TradeTrail
 mvn clean package
-npm ci --prefix frontend/customer
-npm ci --prefix frontend/merchant
+npm ci --prefix frontend/customer --include=dev
+npm ci --prefix frontend/merchant --include=dev
 ```
+
+依赖必须安装成功后再启动页面；若提示 `vite` 不是内部或外部命令，重新执行对应应用的 `npm ci --include=dev`，无需全局安装 Vite。
 
 ### 2. 启动后端
 
@@ -292,7 +298,7 @@ npm --prefix frontend/merchant run dev
 | 店家管理台 | http://127.0.0.1:5174 | `merchant / merchant123` |
 | 物流模拟端 | http://localhost:8081 | `logistics / logistics123` |
 
-用户和店家请使用**不同浏览器配置文件，或普通窗口与无痕窗口**，Cookie 不按端口隔离。新库没有预置商品，先在店家端创建并上架。需要独立数据、逐项断言及故障演练时，从[手工验收文档](docs/testing/manual-acceptance.md)开始。
+用户和店家请使用**不同浏览器配置文件，或普通窗口与无痕窗口**，Cookie 不按端口隔离。新库没有预置商品，先在店家端创建并上架。需要独立数据、逐项断言及故障演练时，从[手工验收文档](docs/testing.md)开始。
 
 ---
 
@@ -338,7 +344,7 @@ Compose 当前只启动中间件，两套前端与两个后端仍需单独运行
 | 店家 | `/admin/outbox`、`/admin/outbox/{id}/retry` | GET / POST | 失败任务查询与恢复 |
 | 回调 | `/callbacks/payments/mock`、`/callbacks/logistics/mock` | POST | 支付与物流签名通知 |
 
-金额字段使用**整数分**。可复制请求、统一错误响应、权限与幂等验证见[接口调试指南](docs/testing/debugging.md)。
+金额字段使用**整数分**。可复制请求、统一错误响应、权限与幂等验证见[接口调试指南](docs/testing.md)。
 
 ---
 
@@ -419,17 +425,15 @@ Playwright 使用 `18080 / 15173 / 15174`，须保证端口空闲并清除遗留
 - [ ] 大数据量列表查询与数据库分页完善
 - [ ] 真实支付/退款渠道及渠道结果查询
 
-演示账号和默认密钥用于本地体验；当前没有完整账号管理或生产身份体系。完整目标与差距见 [Plan.md](Plan.md) 和[交付检查](docs/delivery-checklist.md)。
+演示账号和默认密钥用于本地体验；当前没有完整账号管理或生产身份体系。完整目标、实施状态、历史验收和差距统一见 [项目方案](docs/Plan.md)。
 
 ## 📚 项目文档
 
 | 文档 | 内容 |
 |---|---|
-| [手工验收与故障演练](docs/testing/manual-acceptance.md) | 独立环境、14 个用例、库存断言和记录模板 |
-| [接口、断点与排错](docs/testing/debugging.md) | 可执行请求、幂等与补偿验证、IDE 断点、SQL |
+| [测试、验收与调试](docs/testing.md) | 独立环境、14 个用例、接口请求、幂等与补偿、断点和 SQL |
 | [开发与部署参考](docs/development-and-deployment.md) | 配置参数、接口约定、开发流程、Nginx 示例与维护 |
-| [业务流程与接口说明](docs/implementation-roadmap.md) | 已实现的调用链、状态和接口变更 |
-| [交付检查](docs/delivery-checklist.md) | 验收证据及未完成项 |
+| [项目方案与实施状态](docs/Plan.md) | 业务范围、实现状态、已知缺口及历史验收证据 |
 | [后端设计](docs/design/TradeTrail-后端设计文档.md) / [订单状态机](docs/design/01-订单状态机.md) | 设计方案与规则 |
 | [业务分层](docs/design/02-业务分层设计图.md) / [模块设计](docs/design/03-模块设计图.md) | 模块边界与协作关系 |
-| [开发规范](agent.md) | 编码、接口组织和上下游检查要求 |
+| [开发规范](agent.md) / [AI Agent 资源](ai-agent/README.md) | 编码、接口组织、项目 Skill、工具及协作要求 |

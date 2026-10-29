@@ -1,6 +1,6 @@
 # 开发、配置与演示部署参考
 
-本页收录运行参数、接口约定、开发流程和部署排错说明。项目介绍与功能展示见 [README](../README.md)，逐项测试见 [手工验收](testing/manual-acceptance.md)。
+文档核对日期：2026-10-29。本页收录运行参数、接口约定、开发流程和部署排错说明。项目介绍与功能展示见 [README](../README.md)，逐项测试见 [手工验收](testing.md)。
 
 ## 配置参考
 
@@ -48,11 +48,11 @@ $env:TRADETRAIL_API_TARGET = 'http://127.0.0.1:18080'
 | `tradetrail.after-sale-days` | 15 | 已完成订单的售后申请期限，演示规则 |
 | `tradetrail.jobs.delay-ms` | 2000 | 商城 outbox / 物流恢复任务的执行间隔 |
 | `tradetrail.jobs.lifecycle-delay-ms` | 10000 | 商城超时关单与自动确认间隔 |
-| `tradetrail.jobs.enabled` | true | 商城定时任务开关，关闭后异步支付也不会自动投递 |
+| `tradetrail.jobs.enabled` | true | 两服务各自的任务开关；商城关闭后异步支付和生命周期任务不自动执行，物流关闭后不自动恢复投递 |
 | `tradetrail.mock-payments.enabled` | true | 允许 mock 新支付与收银台操作 |
 | `tradetrail.mock-payments.refund-failures-before-success` | 0 | 每笔模拟退款成功前的故意失败次数 |
 
-退款失败演练可追加 `--tradetrail.mock-payments.refund-failures-before-success=1`。随后新建订单并申请退款，首次执行会记录失败；店家在“异常恢复”沿用原退款号重试。售后在此期间保持退款处理中，合格退货的实物可能已经回库，重试不得再次回补。完整步骤及恢复默认配置的方法见[故障演练](../docs/testing/manual-acceptance.md)。
+退款失败演练可追加 `--tradetrail.mock-payments.refund-failures-before-success=1`。随后新建订单并申请退款，首次执行会记录失败；店家在“异常恢复”沿用原退款号重试。售后在此期间保持退款处理中，合格退货的实物可能已经回库，重试不得再次回补。完整步骤及恢复默认配置的方法见[故障演练](testing.md)。
 
 ## 接口约定
 
@@ -78,7 +78,7 @@ $env:TRADETRAIL_API_TARGET = 'http://127.0.0.1:18080'
 }
 ```
 
-400 通常表示参数不合法，401 为未登录，403 为权限或 CSRF 拒绝，404 为资源不存在，409 为业务冲突，500 为服务异常。排错时同时保留 HTTP 状态、`code`、`traceId` 和发生时间。可执行的请求示例见[接口调试指南](../docs/testing/debugging.md)，当前接口变化见[业务与接口说明](../docs/implementation-roadmap.md)。
+400 通常表示参数不合法，401 为未登录，403 为权限或 CSRF 拒绝，404 为资源不存在，409 为业务冲突，500 为服务异常。排错时同时保留 HTTP 状态、`code`、`traceId` 和发生时间。可执行的请求示例见[接口调试指南](testing.md)，当前接口变化见[业务与接口说明](design/03-模块设计图.md)。
 
 ## 本地开发约定
 
@@ -86,7 +86,7 @@ $env:TRADETRAIL_API_TARGET = 'http://127.0.0.1:18080'
 2. 前端分别维护应用依赖，共享请求与模型放在 `frontend/shared`。三个 `package-lock.json` 分别对应两个应用和验收工具；首次安装按所在目录运行 `npm ci`。
 3. 后端规则变更核对入口、事务、库存与状态、回调、页面及文档。HTTP 接口按角色与业务资源分组，每个方法和路径有独立测试类；缺陷修复补可复现的回归测试。
 4. 新表或字段通过各服务自己的 Flyway 版本迁移交付。不要修改已经在目标数据库执行的历史迁移来实现新结构。
-5. 提交前运行受影响的测试和构建，检查 diff。提交说明包括行为变化、验证结果和已知限制，格式沿用 `类型(范围): 中文说明`，例如 `fix(order): 修复售后冻结下的履约校验`。
+5. 完成修改后运行受影响的测试和构建，检查 diff。只有用户明确要求时才提交或推送；获得授权后的提交说明包括行为变化、验证结果和已知限制，格式沿用 `类型(范围): 中文说明`，例如 `fix(order): 修复售后冻结下的履约校验`。
 
 前端格式化与检查（需先安装 `frontend` 的验收工具依赖）：
 
@@ -95,7 +95,7 @@ npm --prefix frontend run format
 npm --prefix frontend run format:check
 ```
 
-仅调试特定后端用例时，可按[定向回归命令](../docs/testing/debugging.md)缩小范围；最终交付再运行与变更对应的集成与浏览器检查。前端热更新不替代生产构建，修改 Java 后只运行 `mvn test` 也不会更新 Playwright 启动的 JAR。
+仅调试特定后端用例时，可按[定向回归命令](testing.md)缩小范围；最终交付再运行与变更对应的集成与浏览器检查。前端热更新不替代生产构建，修改 Java 后只运行 `mvn test` 也不会更新 Playwright 启动的 JAR。
 
 ## 本机演示部署
 
@@ -161,14 +161,17 @@ server {
 | 生成文件 | `target`、`dist`、`node_modules`、测试报告及本地数据按 `.gitignore` 排除 |
 | 停止服务 | 手工启动终端按 Ctrl+C；停止数据库可执行 `docker compose stop mysql redis` |
 
-演示数据需要保留时，H2 应先停服务再备份对应文件，MySQL 使用数据库备份工具并同时保留迁移版本。更新前记录 Git 提交和实际 JDBC URL，避免把切换 profile 当成数据迁移。新建一套测试数据可换用[手工验收文档](../docs/testing/manual-acceptance.md)中的独立路径，保留原库用于问题复现。
+演示数据需要保留时，H2 应先停服务再备份对应文件，MySQL 使用数据库备份工具并同时保留迁移版本。更新前记录 Git 提交和实际 JDBC URL，避免把切换 profile 当成数据迁移。新建一套测试数据可换用[手工验收文档](testing.md)中的独立路径，保留原库用于问题复现。
 
 异常恢复页分别展示失败退款和耗尽重试的 outbox 任务；仍处于 `PENDING` 或 `PROCESSING` 的投递不一定出现于人工队列。排查时关联支付号、退款号与 outbox 的 `aggregate_id`，不能只看订单主状态。
 
 ## 常见问题
 
+下列诊断优先确认实际运行的端口和数据源，保留失败响应，避免通过直接改库掩盖业务问题。
+
 | 现象 | 首先检查 |
 |---|---|
+| `vite` 不是内部或外部命令 | 在仓库根执行 `npm ci --prefix frontend/merchant --include=dev`，用户端将路径换成 `frontend/customer`；依赖安装成功后再启动，不需要全局安装 Vite |
 | 页面出现“暂时无法连接商城服务” | 先请求商城 `/session`，再请求前端 `/api/session`，区分后端与代理问题 |
 | 登录后另一端变成无权限 | 用户和店家是否在同一浏览器会话中互相覆盖身份 |
 | 付款后仍待支付 | mock 收银台是否成功、调度是否开启、支付回调 URL 是否匹配端口 |
@@ -179,4 +182,8 @@ server {
 | JAR 无法覆盖或数据库文件被锁 | 原项目进程是否仍在运行，是否有两个进程打开同一 H2 文件 |
 | 浏览器验收未启动服务或端口冲突 | 清除遗留 URL 覆盖变量，并确认 18080、15173、15174 空闲 |
 
-完整状态码、SQL、断点和故障复现步骤见[接口、断点与排错指南](../docs/testing/debugging.md)。反馈问题时提供 Git 提交、启动参数、复现步骤、记录 ID、预期与实际结果、脱敏错误响应；可直接使用[验收记录模板](../docs/testing/manual-acceptance.md)。
+旧 MySQL 卷不会自动重跑初始化 SQL。确认是自己的开发数据库后，执行 `docker compose exec mysql mysql -uroot -p`，按提示交互输入本地密码，再执行[物流库初始化 SQL](../docker/mysql/init/01-logistics.sql) 中的建库和授权语句；不通过删除数据卷补库。
+
+同键返回 409 时核对原方法、路径和原始 JSON；缺少 CSRF 可能先返回 403。PowerShell 5.1 不支持 `SkipHttpErrorCheck`，接口调试需使用 PowerShell 7。H2 被服务占用时，不在另一进程强行打开同一文件。
+
+完整状态码、SQL、断点和故障复现步骤见[接口、断点与排错指南](testing.md)。反馈问题时提供 Git 提交、启动参数、复现步骤、记录 ID、预期与实际结果、脱敏错误响应；可直接使用[验收记录模板](testing.md)。
