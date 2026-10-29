@@ -16,7 +16,9 @@ public class MyBatisTrackingStore implements TrackingStore {
 
     @Override
     public boolean add(Tracking event) {
-        if (mapper.count(event.eventId()) > 0) return false;
+        if (mapper.count(event.eventId()) > 0) {
+            return false;
+        }
         return mapper.add(event) == 1;
     }
 
