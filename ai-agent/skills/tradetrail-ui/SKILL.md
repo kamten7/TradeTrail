@@ -1,76 +1,34 @@
 ---
 name: tradetrail-ui
-description: Applies TradeTrail's design system when creating or editing customer H5 pages (Vue 3 + Vant), merchant admin pages (Vue 3 + Element Plus), or logistics simulator pages (Thymeleaf). Use it before writing any .vue component, stylesheet, layout, form, table, or page skeleton. Skip it for backend Java code, SQL, and pure business-logic changes.
+description: Maintain TradeTrail customer Vue/Vant pages, merchant Vue/Element Plus pages, and logistics Thymeleaf UI with existing styles, request contracts, responsive behavior, and business states. Use for UI changes, not Java-only or ordinary documentation work.
 ---
 
-# TradeTrail 设计系统
+# TradeTrail 页面维护规范
 
-## Overview
+先读 [agent.md](../../../agent.md)。本 Skill 约束项目页面维护，不授权提交、推送或上传。纯文档整理不要求启动页面或修改样式。
 
-本技能保证三端界面在配色、间距、圆角和信息层级上一致。用户端与服务端是两个独立 Vue 应用，物流端是 Thymeleaf 服务端页面；三端共用本文件的 token，不各自发明样式。
+## 先定位实际入口
 
-**关键词**：Vant、Element Plus、设计 token、间距、圆角、页面骨架、一致性、移动优先
-
-## 设计 token（唯一来源，禁止自创数值）
-
-```
-主色        #FF6B35   价格、主按钮、选中态
-主色-深     #E05520   按下态
-辅色        #2D3436   正文标题
-文字次级    #636E72   说明文字
-边框        #E9ECEF
-背景        #F7F8FA   页面底色
-卡片        #FFFFFF
-成功        #00B578   配送正常
-警告        #FF8F1F   异常
-危险        #F53F3F   失败、删除
-
-圆角        卡片 8px   按钮 6px   标签/徽章 4px
-阴影        卡片 0 2px 8px rgba(0,0,0,.06)
-间距        只用 4 的倍数：4 8 12 16 24 32
-字号        12 14 16 20 24 32
-行高        正文 1.6   标题 1.3
-```
-
-完整 CSS 变量见 `references/tokens.css`，两个 Vue 应用直接 import，不在组件里重复定义。
-
-## 三端基线
-
-| 端 | 组件库 | 布局基线 |
+| 入口 | 页面及组件 | 样式来源 |
 |---|---|---|
-| 用户端（H5） | Vant 4 | 移动优先，单列卡片流；底部 Tabbar（首页/购物车/订单/我的）；页面左右留白 16px；商品价格 20px 加粗主色 |
-| 店家管理端 | Element Plus | 侧边栏 220px + 顶栏 56px + 内容区 padding 24px；表格 `stripe` + 操作列固定右侧；表单 label 右对齐宽 100px，控件 `size="default"`；按钮主操作在左 |
-| 物流模拟端 | Thymeleaf + 原生 CSS | 单页表单 + 结果卡片；顶部标题区、中部表单、底部结果列表；不引入前端框架 |
+| 用户商城 | `frontend/customer/src/pages`，Vant、Pinia | [tokens.css](../../../frontend/customer/src/tokens.css) 和 [style.css](../../../frontend/customer/src/style.css) |
+| 店家管理台 | `frontend/merchant/src/pages`，Element Plus、共享页面组件 | [tokens.css](../../../frontend/merchant/src/tokens.css) 和 [style.css](../../../frontend/merchant/src/style.css) |
+| 物流端 | 独立服务 Thymeleaf | [index.html](../../../tradetrail-logistics-simulator/src/main/resources/templates/index.html) 中现有布局和样式 |
 
-## 每个页面的固定骨架
+两端现有 `--tt-*` token 是运行样式来源；AI 目录不再保存可误用的第三份 CSS。改主题时核对两个应用的组件库映射，不要求物流模板直接 import Vue CSS。通用颜色、间距、圆角优先沿用现有 token，必要的新样式按真实页面需求定义。
 
-```
-1 页面标题区     标题 20px 加粗 + 右侧主操作按钮
-2 筛选/操作区    查询条件、批量操作（管理端）；无则不占位
-3 内容区         空态 / 加载态 / 错误态三件套必须都有
-4 分页或结束标记  列表页必做；移动端用"加载更多"
-```
+## 业务与交互
 
-## 提交前一致性自查（8 条）
+- 页面通过各自 `api.ts` 使用 [shared/http.ts](../../../frontend/shared/http.ts)，不另写绕过 Cookie、CSRF、超时和稳定请求键的 fetch。
+- 金额、库存、身份和状态以服务端为准。`allowedActions` 可辅助展示，但操作仍可能因角色、期限、库存或售后规则被拒绝。
+- 保留加载、空、错误和可重试状态。请求超时不等于业务失败，重试保留原键，不能为恢复界面随意创建新订单。
+- 将订单、支付、物流和售后分别展示；已完成订单退款后主状态仍完成，退款失败从失败退款入口恢复。
+- 用户、店家用独立浏览器会话验证，避免端口相同主机的 Cookie 覆盖。
+- 沿用用户端移动布局、店家桌面表格及窄屏适配、物流独立表单，不引入第二套组件库。
+- 表单有标签及校验反馈，异步按钮有进行中状态，移动触控区域保持可用，状态和错误不只靠颜色区分。
 
-1. 颜色只来自 token，无 `#fff` 之外的临时色值
-2. 间距是 4 的倍数，无 13px、18px 这类魔法值
-3. 卡片圆角 8px、按钮 6px，与既有页面一致
-4. 同一层级的字号一致（列表标题 16px、辅助信息 14px 或 12px）
-5. 空态、加载态、错误态都有，不是只写成功路径
-6. 金额、数量右对齐；状态用徽章不用纯文字
-7. 移动端点击区域不小于 44px
-8. 无内联 style 堆砌（超过 3 个属性就提到 class）
+## 参考与验证
 
-## 页面配方
+按页面类型阅读 [page-recipes.md](references/page-recipes.md)。优先复用现有页面和 `PageHeading/LoadError/AppIcon` 等店家组件，不预设批量导出、预计送达、图片管理等尚未实现能力。
 
-- `references/page-recipes.md`：列表页、详情页、表单页、订单时间线、空态的布局与组件选型
-- 新页面优先复制既有同类型页面结构，再改内容，不要从空白文件起手
-
-## 禁止清单
-
-- 不使用 HTML 注释（项目规范），需要说明时用相邻文档或组件内 TS 注释
-- 不引入第二套 UI 组件库
-- 不自定义与 token 冲突的主题色；需要改主色时改 token 文件
-- 不用纯文字堆砌表格（管理端必须用 el-table）
-- 不在移动端做横向滚动表格
+修改后运行对应应用 `npm run build`；结构和交互变化再检查受影响页面、窄屏、错误恢复及必要的浏览器用例。格式命令在 `frontend/package.json`，测试步骤见[测试与调试](../../../docs/testing.md)。不得使用 HTML 注释。

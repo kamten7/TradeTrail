@@ -1,97 +1,56 @@
-# 五类核心代码模板
+# TradeTrail 交易实现与测试参考
 
-模板只给结构与关键校验，命名按业务调整；持久层用 MyBatis-Plus，交易关键更新放在明确的 Mapper SQL 中并检查影响行数。下列示意调用需按实际 Mapper 接口调整。
+本页直接引用真实代码，避免另写不可编译或与业务状态冲突的模板。阅读对应实现后再扩展，不把简化伪代码复制进项目。
 
-## 1. 库存条件扣减（下单预留）
+## 1. 下单与库存
 
-```java
-@Transactional
-public long reserveAndCreateOrder(CreateOrderCommand command, String idempotencyKey) {
-    Order order = orderRepository.findByClientRequestId(command.clientRequestId())
-            .orElseGet(() -> createOrder(command));
+- [OrderService.create](../../../../tradetrail-application/src/main/java/com/tradetrail/application/order/OrderService.java)：参数、排序、命令锁、快照、库存和日志。
+- [MyBatisStockStore](../../../../tradetrail-persistence/src/main/java/com/tradetrail/persistence/inventory/MyBatisStockStore.java)：预留状态转换与流水。
+- [StockMapper](../../../../tradetrail-persistence/src/main/java/com/tradetrail/persistence/inventory/StockMapper.java)：条件更新并返回行数。
 
-    for (OrderItem item : order.items().sortedBySkuIdAscending()) {
-        int rows = stockMapper.reserve(item.skuId(), item.quantity());
-        if (rows == 0) {
-            throw new StockNotEnoughException(item.skuId());
-        }
-        reservationMapper.insert(new InventoryReservation(order.id(), item.skuId(), item.quantity(), "RESERVED"));
-    }
-    return order.id();
-}
+```sql
+UPDATE stock
+SET available = available - #{qty},
+    reserved = reserved + #{qty},
+    version = version + 1
+WHERE product_id = #{id} AND available >= #{qty}
 ```
 
-要点：条件写在 `WHERE` 里、检查 `rows`、预留记录同事务、按 skuId 升序。
+该 SQL 只完成一个库存动作，还需要同事务的预留记录、流水和订单。重放成功订单必须直接返回已有结果，不能再次执行预留循环。
 
-## 2. 幂等写接口
+## 2. 幂等
 
-```java
-public OrderResponse create(CreateOrderRequest request, String idempotencyKey) {
-    if (idempotencyKey == null || idempotencyKey.isBlank()) {
-        throw new ValidationException("缺少 Idempotency-Key");
-    }
-    return idempotencyService.execute(idempotencyKey, OrderResponse.class,
-            () -> createOrderService.create(request));
-}
-```
+- [IdempotencyFilter](../../../../tradetrail-api/src/main/java/com/tradetrail/api/IdempotencyFilter.java)：身份与请求键、原始方法/路径/正文指纹、成功 HTTP 响应重放。
+- [CommandService](../../../../tradetrail-application/src/main/java/com/tradetrail/application/integration/CommandService.java) 和 [MyBatisCommandStore](../../../../tradetrail-persistence/src/main/java/com/tradetrail/persistence/integration/MyBatisCommandStore.java)：命令锁与指纹冲突。
+- [http.ts](../../../../frontend/shared/http.ts)：网络结果不确定时保留 sessionStorage 请求键。
 
-底层靠 `idempotency_record(key, response_json, status)` 唯一索引：先插入占位，冲突时读已有结果返回同一响应；并发冲突用条件更新唤醒等待。
+HTTP 业务幂等、直接应用命令幂等和回调事件去重是不同层次，不可只保留其中一种。原始 JSON 的空白或字段顺序变化也会改变 HTTP 指纹。
 
-## 3. outbox 事件（业务事实与事件同事务）
+## 3. 状态与竞争
 
-```java
-@Transactional
-public void paySuccess(long orderId, PaymentCallback callback) {
-    int rows = orderMapper.transition(orderId, "PENDING_PAYMENT", "PAID");
-    if (rows == 0) {
-        return;
-    }
-    outboxMapper.insert(new OutboxEvent(UUID.randomUUID().toString(), "ORDER_PAID", orderId, toJson(orderId), "PENDING"));
-}
-```
+- [OrderState](../../../../tradetrail-domain/src/main/java/com/tradetrail/domain/order/OrderState.java)：真实枚举与事件守卫。
+- [OrderMapper](../../../../tradetrail-persistence/src/main/java/com/tradetrail/persistence/order/OrderMapper.java)：行锁、预期状态与版本条件更新。
+- [PaymentService](../../../../tradetrail-application/src/main/java/com/tradetrail/application/payment/PaymentService.java)：通知锁后重读、迟到支付退款。
 
-投递器：`status='PENDING' AND next_retry_at <= NOW()` 取批，发送成功后置 `SENT`；失败记 `retry_count`、退避时间，超阈值转 `MANUAL`。消费方按 `event_id` 写 inbox 去重。
+不使用旧的 `PAID/CANCELLED/AFTER_SALE` 状态新建业务。先判断重复事实，再按当前状态执行；已完成订单退款保持完成，售后状态独立更新。
 
-## 4. 订单状态机（守卫 + CAS）
+## 4. outbox 与恢复
 
-```java
-public enum OrderStatus { PENDING_PAYMENT, PAID, SHIPPED, DELIVERED, COMPLETED, CANCELLED, AFTER_SALE }
+- [EventService](../../../../tradetrail-application/src/main/java/com/tradetrail/application/integration/EventService.java)：发布与消费事实。
+- [OutboxDispatcher](../../../../tradetrail-application/src/main/java/com/tradetrail/application/integration/OutboxDispatcher.java)：类型分发。
+- [OutboxMapper](../../../../tradetrail-persistence/src/main/java/com/tradetrail/persistence/integration/OutboxMapper.java)：领取租约与成功/失败写回。
 
-private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED = Map.of(
-        PENDING_PAYMENT, Set.of(PAID, CANCELLED),
-        PAID,            Set.of(SHIPPED, CANCELLED),
-        SHIPPED,         Set.of(DELIVERED),
-        DELIVERED,       Set.of(COMPLETED, AFTER_SALE)
-);
+实际状态为 `PENDING/PROCESSING/SENT/FAILED`，不是 `MANUAL`。领取不保证远端效果只发生一次；验证重复回调、执行成功但确认丢失、租约到期与人工重试，不以异常被捕获作为恢复正确的证据。
 
-public void transition(Order order, OrderStatus target) {
-    if (!ALLOWED.getOrDefault(order.status(), Set.of()).contains(target)) {
-        throw new IllegalTransitionException(order.status(), target);
-    }
-    int rows = orderMapper.transition(order.id(), order.status().name(), target.name());
-    if (rows == 0) {
-        throw new ConcurrentTransitionException(order.id());
-    }
-}
-```
+## 5. 测试入口与断言
 
-要点：转移表是唯一事实、非法转移抛业务异常、CAS 防并发覆盖、状态与流水同事务。
+| 参考 | 观察目标 |
+|---|---|
+| [CreateOrderApiTest](../../../../tradetrail-boot/src/test/java/com/tradetrail/api/CreateOrderApiTest.java) | 成功响应、原键同订单、库存不足 |
+| [TransactionRegressionTest](../../../../tradetrail-boot/src/test/java/com/tradetrail/api/TransactionRegressionTest.java) | 并发同键、购物车加量、售后阻断发货 |
+| [TransactionLifecycleTest](../../../../tradetrail-boot/src/test/java/com/tradetrail/api/TransactionLifecycleTest.java) | 多商品回滚、快照、100 抢 10、迟到支付、物流及退款 |
+| [MySqlTransactionIT](../../../../tradetrail-boot/src/test/java/com/tradetrail/api/MySqlTransactionIT.java) | 同一事务场景在真实 MySQL 验证 |
 
-## 5. 接口测试模板（每个接口一个类，五个必测路径）
+接口测试至少考虑成功、非法输入、角色及归属、业务拒绝和重复执行。具体类中的已有用例不代表这些维度全部覆盖；新增和修改时按根规范补足，避免空测试方法或复制实现作为断言。
 
-```java
-class CreateOrderApiTest {
-
-    @Test void createsOrderSuccessfully() { /* 201 + 订单体 + 库存已预留 */ }
-
-    @Test void rejectsInvalidQuantity() { /* 400 + code=VALIDATION_ERROR */ }
-
-    @Test void rejectsForeignAddress() { /* 403 + 越权 */ }
-
-    @Test void rejectsWhenStockInsufficient() { /* 409 + allowedActions 不含支付 */ }
-
-    @Test void returnsSameOrderOnRepeatedIdempotencyKey() { /* 两次请求同一订单号 */ }
-}
-```
-
-回调类接口另加：签名错误、重复事件、乱序事件三条。
+测试命令、报告和环境隔离统一见[测试与调试](../../../../docs/testing.md)。

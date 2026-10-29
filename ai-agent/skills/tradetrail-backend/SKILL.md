@@ -1,58 +1,35 @@
 ---
 name: tradetrail-backend
-description: Enforces TradeTrail backend architecture rules when writing, modifying, or reviewing Java code in tradetrail-* modules. Use it before creating any domain/application/api/persistence class, adding a REST endpoint, writing SQL, or adding tests. Skip it for frontend code, docs-only edits, and pure design discussions.
+description: Apply TradeTrail module boundaries and transaction rules when changing or reviewing Java backend code, REST APIs, SQL, payment or logistics integration, and backend tests. Skip ordinary documentation-only and frontend-only work.
 ---
 
-# TradeTrail 后端架构纪律
+# TradeTrail 后端开发规范
 
-## Overview
+先读根目录 [agent.md](../../../agent.md)。范围和未完成项见 [Plan](../../../docs/Plan.md)，本 Skill 不覆盖用户要求，也不授权提交、推送或上传。
 
-本技能在写后端代码前强制执行四层依赖、跨域边界、事务与幂等要求。规范来源：仓库根 `agent.md` 第 2-6 节与 `docs/design/` 三份设计文档。与设计冲突时先核对业务意图，再同时改设计和代码。
+## 按任务阅读
 
-**关键词**：DDD、分层、模块边界、条件更新、幂等、outbox、状态机、接口测试
-
-## 五条铁律（每次提交前逐条自查）
-
-1. **依赖方向**：`api → application → domain`；`persistence` 实现 domain 端口。domain **不得** import Spring、HTTP、ORM、渠道 SDK。
-2. **Controller 不碰 Repository**：只依赖 application 用例；跨域只能调对方公开 API 或发事件，不得直接读对方表或 Repository。
-3. **所有库存/金额/状态写操作**必须同事务完成，且：条件 UPDATE + 检查影响行数 + 写业务事实 + 写审计或流水。
-4. **每个对外接口（HTTP 方法 + 路径）都有独立测试类**：`CreateOrderApiTest`、`GetOrderApiTest` 这类命名，不靠一个空的 Controller 测试类凑覆盖。
-5. **错误响应固定四要素**：`code / message / traceId / currentStatus / allowedActions`；金额、身份、库存、订单状态以服务端为准。
-
-任何一条不满足，先改代码，不要提交。
-
-## 决策树：你要写什么，先读哪份参考
-
-| 你要做的事 | 先读 |
+| 任务 | 参考 |
 |---|---|
-| 新建类，不确定放哪一层/哪个包 | `references/layer-rules.md` 的「四层职责表」与「包结构速查」 |
-| 写库存扣减、订单状态流转、支付回调、幂等接口 | `references/code-templates.md` 对应模板，按模板改而不是从零写 |
-| 写接口测试 | `references/code-templates.md` 的「接口测试模板」（五个必测路径） |
-| 跨业务域取数据或改数据 | `references/layer-rules.md` 的「跨域交互」三种合法方式 |
-| 判断是否需要新依赖、新表、新模块 | 回到 `agent.md` 1.4 与 `Plan.md` 第 6 节，先证明替代方案不成立 |
+| 新类位置、依赖、跨域调用、数据所有权 | [layer-rules.md](references/layer-rules.md) |
+| 库存、幂等、状态、回调、outbox 或回归测试 | [code-templates.md](references/code-templates.md)，内容为实际代码阅读入口 |
+| 理解整体调用链 | [后端设计](../../../docs/design/TradeTrail-后端设计文档.md) |
+| 查真实状态、表和接口 | [状态机](../../../docs/design/01-订单状态机.md)、[模块设计](../../../docs/design/03-模块设计图.md) |
 
-## 命名与分层速查
+## 关键约束
 
-```
-api/          CustomerOrderController、MerchantCatalogController（按角色 + 资源分组）
-application/  用例服务：CreateOrderService、ShipOrderService（编排事务与端口）
-domain/       Order、Stock、OrderStatus、OrderStateMachine（零框架依赖）
-infrastructure/ MyBatisPlusOrderRepository、MockPaymentAdapter（实现 domain 端口）
-```
+1. `api → application → domain`；持久化和渠道模块实现领域端口。领域层不依赖 Spring、HTTP、ORM。Controller 不直接调用 Mapper 或 Repository。
+2. 同一域拥有表写权限；跨域调用公开应用服务或事件。独立物流服务只通过 HTTP 交互，不读商城数据库。
+3. 下单核价、快照、库存预留、日志和事件必须保持事务一致；多商品按 ID 固定顺序处理，条件更新必须检查影响行数。
+4. 付款、取消、超时、发货和售后修改前锁定订单，并核对最新状态、版本和冻结。保留已完成订单的历史事实。
+5. 浏览器写请求用稳定幂等键；回调先验签，再去重并验证金额、归属渠道和业务状态。不要把“HTTP 超时”解释成操作未执行。
+6. 外部调用不能靠本地事务保证原子性。业务与 outbox 同事务，投递按原事件号重试，消费检查已有事实。
+7. 接口错误使用 `code/message/traceId/currentStatus/allowedActions`。金额为整数分，时间统一 UTC，订单与库存以服务端为准。
 
-- 业务域：`catalog`、`cart`、`order`、`inventory`、`payment`、`fulfillment`、`after_sale`、`integration`
-- 同一业务的方法、DTO、服务、测试放同一业务包；**不用 `common`/`util` 收容业务逻辑**
-- 对外只暴露公开 API、事件、端口；实现放 `internal`
+## 交付与验证
 
-## 禁止清单
+按 `agent.md` 要求为每个 HTTP 方法与路径建立独立接口测试类，覆盖成功、入参、权限/归属、关键拒绝及适用幂等；当前合并组织的测试不作为降低规范的依据。领域状态用单元测试，事务和竞争用真实 MySQL，页面链路用浏览器验收。
 
-- 持久层统一使用 MyBatis-Plus；交易核心用明确的 Mapper SQL、条件更新和影响行数检查；不引入 JPA 或另一套持久化框架
-- 不为尚未出现的需求预置空接口、抽象层或消息队列
-- 不用日志代替错误处理，不静默吞异常
-- 不把 mock 支付/物流的 HMAC 协议描述成第三方通用协议
-- 不在 domain 层做 HTTP 调用、读配置、开事务注解
+变更前后核对入口、领域守卫、持久化、回调、消费者和定时任务。验证范围与改动匹配；结果未执行就明确记录，不写成通过。只有用户明确要求时才提交或推送。
 
-## References
-
-- `references/layer-rules.md`：四层职责、依赖方向、跨域交互、常见违规对照
-- `references/code-templates.md`：条件更新 / 幂等 / outbox / 状态机 / 接口测试五类模板
+不新增尚无需求的架构层、渠道热加载或消息队列；不把 mock 协议描述为第三方标准，也不将并发正确性测试写成容量压测。
