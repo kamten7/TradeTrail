@@ -3,6 +3,9 @@ package com.tradetrail.domain.order;
 import com.tradetrail.domain.TradeFailure;
 import java.util.List;
 
+/**
+ * 订单主状态只接受显式事件，履约冻结参与发货和确认守卫。
+ */
 public enum OrderState {
     PENDING_PAYMENT, AWAITING_SHIPMENT, SHIPPED, COMPLETED, CLOSED_UNPAID, CLOSED_REFUNDED;
 

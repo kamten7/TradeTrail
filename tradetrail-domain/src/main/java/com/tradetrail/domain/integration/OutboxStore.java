@@ -2,6 +2,9 @@ package com.tradetrail.domain.integration;
 
 import java.util.List;
 
+/**
+ * 待投递事件与消费去重由持久化适配器实现。
+ */
 public interface OutboxStore {
     record Event(String eventId, String type, String aggregateId, String payload, String state, int attempts,
             String lastError) {

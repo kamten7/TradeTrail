@@ -2,6 +2,9 @@ package com.tradetrail.domain;
 
 import java.util.List;
 
+/**
+ * 业务拒绝携带错误码与状态提示，交由接口层统一转换。
+ */
 public class TradeFailure extends RuntimeException {
     private final String code;
     private final String currentStatus;

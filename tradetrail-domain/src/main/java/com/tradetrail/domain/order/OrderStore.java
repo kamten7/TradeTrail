@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义订单数据访问端口，使业务规则不依赖数据库实现。
+ */
 public interface OrderStore {
     record StatusLog(String fromStatus, String toStatus, String event, String actor, String commandId, String traceId,
             LocalDateTime occurredAt) {

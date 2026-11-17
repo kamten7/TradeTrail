@@ -3,6 +3,9 @@ package com.tradetrail.domain.payment;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义支付数据访问端口，使业务规则不依赖数据库实现。
+ */
 public interface PaymentStore {
     Optional<PaymentAttempt> byOrder(long order);
 

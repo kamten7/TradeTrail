@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义履约数据访问端口，使业务规则不依赖数据库实现。
+ */
 public interface ShipmentStore {
     Optional<Shipment> byOrder(long id);
 

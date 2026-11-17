@@ -3,6 +3,9 @@ package com.tradetrail.domain.after_sale;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义售后数据访问端口，使业务规则不依赖数据库实现。
+ */
 public interface AfterSaleStore {
     AfterSale create(long order, String customer, String reason, String type);
 
