@@ -10,6 +10,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
+/**
+ * 外部投递允许重复，处理器依靠事件身份和业务状态恢复。
+ */
 @Service
 public class OutboxDispatcher {
     private final OutboxStore store;

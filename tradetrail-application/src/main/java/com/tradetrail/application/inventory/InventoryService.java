@@ -7,6 +7,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 库存预留、确认、释放和回补均检查存储层的条件转换结果。
+ */
 @Service
 public class InventoryService {
     private final StockStore stock;

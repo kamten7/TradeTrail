@@ -21,6 +21,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 订单变更锁定当前行并复核状态，库存动作与状态日志同事务提交。
+ */
 @Service
 public class OrderService {
     public record Line(long productId, int quantity, Long expectedPriceCents) {

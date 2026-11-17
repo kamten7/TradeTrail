@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 
+/**
+ * 支付和退款查询与命令处理分开，返回已有渠道事实。
+ */
 @Service
 public class PaymentQueryService {
     private final PaymentStore store;

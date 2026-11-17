@@ -9,6 +9,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 商品发布和报价操作由本域统一协调库存边界。
+ */
 @Service
 public class CatalogService {
     private final CatalogStore store;

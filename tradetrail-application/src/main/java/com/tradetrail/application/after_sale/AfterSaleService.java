@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 售后申请先冻结履约，再按发货阶段选择退款路径。
+ */
 @Service
 public class AfterSaleService {
     private final AfterSaleStore cases;

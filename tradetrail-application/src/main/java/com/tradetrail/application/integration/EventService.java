@@ -6,6 +6,9 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 业务事实与待投递事件在同一事务中登记。
+ */
 @Service
 public class EventService {
     private final OutboxStore store;

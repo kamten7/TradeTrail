@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 模拟渠道成功不等于订单已付款；签名通知才触发订单确认。
+ */
 @Service
 public class PaymentService {
     private final PaymentStore store;

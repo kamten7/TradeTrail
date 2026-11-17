@@ -11,6 +11,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 购物车结算复核选中明细，成交价由服务端商品报价决定。
+ */
 @Service
 public class CartService {
     private final CartStore cart;

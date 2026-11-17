@@ -14,6 +14,9 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 运单创建与订单状态同步，轨迹摘要不因迟到事件倒退。
+ */
 @Service
 public class FulfillmentService {
     private final OrderService orders;

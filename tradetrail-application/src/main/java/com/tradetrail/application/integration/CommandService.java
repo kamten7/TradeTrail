@@ -9,6 +9,9 @@ import java.util.HexFormat;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 幂等命令锁定请求指纹，防止同键改写业务含义。
+ */
 @Service
 public class CommandService {
     private final CommandStore store;
