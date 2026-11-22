@@ -1,3 +1,4 @@
+// 购物车界面状态以服务端报价为准，不在客户端锁定成交价。
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { api, type CartItem, type Quote } from '../api'

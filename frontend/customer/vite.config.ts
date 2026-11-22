@@ -1,3 +1,4 @@
+// 开发代理转发 API 请求，避免页面直接耦合商城服务端口。
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 

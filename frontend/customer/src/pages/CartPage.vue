@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 结算前重新获取服务端报价，避免页面缓存价格成为成交依据。
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { showFailToast, showConfirmDialog } from 'vant'

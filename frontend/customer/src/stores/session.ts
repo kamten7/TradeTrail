@@ -1,3 +1,4 @@
+// 用户端会话状态从服务端同步，路由仅用于界面引导。
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { session, login, logout } from '../api'

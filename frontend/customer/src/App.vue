@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 用户端布局根据会话状态展示入口，业务授权仍由后端完成。
 import { onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from './stores/session'

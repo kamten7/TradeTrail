@@ -1,3 +1,4 @@
+// 集中注册用户端使用的 Vant 组件。
 import type { App } from 'vue'
 import {
   Button,

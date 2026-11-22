@@ -1,3 +1,4 @@
+/* 用户端设计变量集中定义，供页面样式复用。 */
 :root {
   --tt-primary: #ff6b35;
   --tt-primary-active: #e05520;

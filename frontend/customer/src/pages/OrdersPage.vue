@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 订单页将支付、物流和售后进度分别展示。
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { showConfirmDialog, showFailToast, showSuccessToast, showToast } from 'vant'
 import {

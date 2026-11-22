@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 商品页展示当前可售数据，下单时仍由服务端复核。
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { showSuccessToast, showFailToast } from 'vant'

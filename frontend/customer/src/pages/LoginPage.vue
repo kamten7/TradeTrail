@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 登录后重新读取会话与 CSRF 信息。
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '../stores/session'

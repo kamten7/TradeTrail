@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 账户页展示当前会话与订单入口，不保存独立身份事实。
 import { useRouter } from 'vue-router'
 import { showFailToast } from 'vant'
 import { useSessionStore } from '../stores/session'
