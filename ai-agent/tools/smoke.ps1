@@ -1,3 +1,4 @@
+# 通过真实 HTTP 链路创建演示数据，验证商城与物流服务协作。
 param(
     [string]$MallUrl = 'http://127.0.0.1:8080',
     [string]$LogisticsUrl = 'http://127.0.0.1:8081'
