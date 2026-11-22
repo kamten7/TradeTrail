@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * 物流操作页只提交节点和重试命令，投递由服务层处理。
+ */
 @Controller
 public class DeliveryController {
     private final DeliveryService service;

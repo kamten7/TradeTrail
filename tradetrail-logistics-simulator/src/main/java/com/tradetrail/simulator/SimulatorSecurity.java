@@ -11,6 +11,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * 物流操作会话与商城会话分离，页面写入受 CSRF 保护。
+ */
 @Configuration
 public class SimulatorSecurity {
     @Bean

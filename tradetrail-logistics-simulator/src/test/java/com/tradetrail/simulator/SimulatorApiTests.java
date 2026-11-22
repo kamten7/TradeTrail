@@ -17,6 +17,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证独立物流页面接口与投递恢复行为。
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 abstract class SimulatorApiTestBase {

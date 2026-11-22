@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 物流库保存节点及投递状态，按到期时间领取待推送事件。
+ */
 public interface TrackingMapper extends BaseMapper<TrackingRow> {
     @Select("SELECT event_id FROM sim_tracking_event WHERE delivery_state IN "
             + "('PENDING','RETRY','PROCESSING') AND next_attempt_at<=CURRENT_TIMESTAMP ORDER BY "

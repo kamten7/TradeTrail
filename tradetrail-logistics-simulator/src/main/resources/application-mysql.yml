@@ -1,3 +1,4 @@
+# 物流 MySQL 数据库与商城数据库分离。
 spring:
   datasource:
     url: ${TRADETRAIL_LOGISTICS_DB_URL:jdbc:mysql://localhost:3310/tradetrail_logistics?useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}

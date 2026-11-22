@@ -22,6 +22,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * 物流节点先入库再投递，重试沿用原事件 ID。
+ */
 @Service
 public class DeliveryService {
     private final TrackingMapper mapper;
