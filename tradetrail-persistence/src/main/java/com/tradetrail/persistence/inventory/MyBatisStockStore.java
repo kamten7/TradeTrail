@@ -3,6 +3,9 @@ package com.tradetrail.persistence.inventory;
 import com.tradetrail.domain.inventory.StockStore;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 库存动作先检查预留前态，再记录唯一业务流水。
+ */
 @Repository
 public class MyBatisStockStore implements StockStore {
     private final StockMapper mapper;

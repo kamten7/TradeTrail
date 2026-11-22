@@ -8,6 +8,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 运单摘要的读写入口，按订单保持唯一运单。
+ */
 public interface ShipmentMapper {
     @Select("SELECT order_id,carrier,tracking_no,status,progress,last_occurred_at,delivered_at "
             + "FROM shipment WHERE order_id=#{id}")

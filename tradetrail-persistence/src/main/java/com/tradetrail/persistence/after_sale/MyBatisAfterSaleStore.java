@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将售后端口映射到工单与动作表，隔离数据库字段。
+ */
 @Repository
 public class MyBatisAfterSaleStore implements AfterSaleStore {
     private final AfterSaleMapper mapper;

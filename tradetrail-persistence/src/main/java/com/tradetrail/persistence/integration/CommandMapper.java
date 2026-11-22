@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 幂等记录的锁定与完成操作保留原请求指纹。
+ */
 public interface CommandMapper {
     @Insert("INSERT INTO idempotency_record(command_key,fingerprint) VALUES(#{key},#{hash}) ON "
             + "DUPLICATE KEY UPDATE command_key=command_key")

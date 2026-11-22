@@ -8,6 +8,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 支付尝试和退款尝试受订单与支付唯一约束限制。
+ */
 public interface PaymentMapper {
     @Select("SELECT id,order_id,channel,amount_cents,status,provider_status FROM payment_attempt "
             + "WHERE order_id=#{id}")

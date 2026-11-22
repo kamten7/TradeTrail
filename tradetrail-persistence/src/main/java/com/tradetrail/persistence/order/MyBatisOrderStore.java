@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 订单主表与多商品明细分别映射，成交快照不依赖当前商品。
+ */
 @Repository
 public class MyBatisOrderStore implements OrderStore {
     private final OrderMapper mapper;

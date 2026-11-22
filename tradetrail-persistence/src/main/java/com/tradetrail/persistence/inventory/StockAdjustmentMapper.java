@@ -3,6 +3,9 @@ package com.tradetrail.persistence.inventory;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 
+/**
+ * 人工库存调整单独记录原因和操作者。
+ */
 public interface StockAdjustmentMapper {
     @Insert("INSERT INTO stock_adjustment(product_id, delta, reason, operator_name) "
             + "VALUES(#{productId}, #{delta}, #{reason}, #{operator})")

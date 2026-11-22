@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 购物车项以客户和商品定位，避免重复加购产生多行。
+ */
 public interface CartMapper extends BaseMapper<CartRow> {
     @Insert("INSERT INTO cart_item(customer,product_id,quantity,selected) "
             + "VALUES(#{customer},#{product},#{qty},TRUE) ON DUPLICATE KEY UPDATE " + "quantity=quantity+#{qty}")

@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 
+/**
+ * 订单主表兼容历史单商品字段，当前明细以订单项为准。
+ */
 @TableName("sales_order")
 public class OrderRow {
     @TableId(type = IdType.AUTO)

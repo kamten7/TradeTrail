@@ -4,6 +4,9 @@ import com.tradetrail.domain.integration.OutboxStore;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将事件投递和消费去重端口映射到数据库。
+ */
 @Repository
 public class MyBatisOutboxStore implements OutboxStore {
     private final OutboxMapper mapper;

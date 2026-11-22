@@ -7,6 +7,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 到期事件领取和重试状态由数据库持久化。
+ */
 public interface OutboxMapper {
     @Insert("INSERT INTO outbox_event(event_id,type,aggregate_id,payload) "
             + "VALUES(#{id},#{type},#{aggregate},#{payload})")

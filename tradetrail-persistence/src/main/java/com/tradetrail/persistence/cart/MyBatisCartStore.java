@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将购物车端口映射到持久化记录，隔离客户查询。
+ */
 @Repository
 public class MyBatisCartStore implements CartStore {
     private final CartMapper mapper;

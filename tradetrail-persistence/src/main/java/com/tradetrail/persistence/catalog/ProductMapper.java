@@ -7,6 +7,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 商品报价读取与写入在持久层完成，结算需使用最新报价。
+ */
 public interface ProductMapper extends BaseMapper<ProductRow> {
     @Update("UPDATE product SET name=#{name},description=#{description},price_cents=#{price},"
             + "published=#{published} WHERE id=#{id}")

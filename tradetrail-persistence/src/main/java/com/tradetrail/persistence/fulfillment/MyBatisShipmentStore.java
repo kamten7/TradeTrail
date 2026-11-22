@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将运单摘要映射到独立表，订单只保存关联运单号。
+ */
 @Repository
 public class MyBatisShipmentStore implements ShipmentStore {
     private final ShipmentMapper mapper;

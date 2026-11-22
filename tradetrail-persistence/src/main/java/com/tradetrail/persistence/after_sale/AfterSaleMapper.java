@@ -5,6 +5,9 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 售后工单和审计动作的 SQL 入口，按订单保持工单唯一。
+ */
 public interface AfterSaleMapper extends BaseMapper<AfterSaleRow> {
     @Update("UPDATE after_sale_case SET status=#{status},decision_reason=#{decision},"
             + "return_tracking_no=#{tracking},restocked=#{restocked} WHERE id=#{id}")

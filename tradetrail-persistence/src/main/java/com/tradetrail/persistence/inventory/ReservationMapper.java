@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 预留状态转换同时校验订单、商品、数量和预期前态。
+ */
 public interface ReservationMapper {
     @Insert("INSERT INTO inventory_reservation(order_id,product_id,quantity,state) "
             + "VALUES(#{order},#{product},#{qty},'RESERVED')")

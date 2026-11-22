@@ -10,6 +10,9 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 订单锁定读取与版本条件更新在此实现。
+ */
 public interface OrderMapper extends BaseMapper<OrderRow> {
     @Select("SELECT * FROM sales_order WHERE id=#{id} FOR UPDATE")
     OrderRow lock(long id);

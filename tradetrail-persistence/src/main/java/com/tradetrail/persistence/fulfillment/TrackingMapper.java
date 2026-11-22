@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+/**
+ * 物流轨迹表按事件 ID 去重，并支持运单时间线查询。
+ */
 public interface TrackingMapper {
     @Select("SELECT COUNT(*) FROM tracking_event WHERE event_id=#{eventId}")
     int count(@Param("eventId") String eventId);

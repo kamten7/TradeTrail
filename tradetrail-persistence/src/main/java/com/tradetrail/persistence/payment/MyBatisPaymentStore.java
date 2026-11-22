@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将支付、通知和退款事实映射到各自记录。
+ */
 @Repository
 public class MyBatisPaymentStore implements PaymentStore {
     private final PaymentMapper mapper;

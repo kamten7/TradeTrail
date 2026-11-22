@@ -3,6 +3,9 @@ package com.tradetrail.persistence.integration;
 import com.tradetrail.domain.integration.CommandStore;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将命令幂等端口映射到响应记录。
+ */
 @Repository
 public class MyBatisCommandStore implements CommandStore {
     private final CommandMapper mapper;

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 将商品报价和发布操作映射到数据库。
+ */
 @Repository
 public class MyBatisCatalogStore implements CatalogStore {
     private final ProductMapper mapper;

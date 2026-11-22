@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
+/**
+ * 轨迹事件以事件 ID 去重，按运单提供时间线。
+ */
 @Repository
 public class MyBatisTrackingStore implements TrackingStore {
     private final TrackingMapper mapper;

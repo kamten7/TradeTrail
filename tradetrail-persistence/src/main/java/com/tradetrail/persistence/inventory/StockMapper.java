@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
 
+/**
+ * 关键库存写入使用条件更新，影响行数决定操作结果。
+ */
 public interface StockMapper extends BaseMapper<StockRow> {
     @Update("UPDATE stock SET available=available+#{qty},sold=sold-#{qty},version=version+1 WHERE "
             + "product_id=#{id} AND sold>=#{qty}")
