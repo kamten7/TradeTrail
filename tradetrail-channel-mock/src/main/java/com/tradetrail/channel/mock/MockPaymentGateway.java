@@ -11,6 +11,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+/**
+ * 模拟支付通知采用签名 HTTP，渠道结果与订单确认分离。
+ */
 @Component
 public class MockPaymentGateway implements PaymentGateway {
     private final ObjectMapper json;

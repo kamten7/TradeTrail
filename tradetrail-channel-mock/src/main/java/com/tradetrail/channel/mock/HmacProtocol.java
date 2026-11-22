@@ -9,6 +9,9 @@ import java.util.HexFormat;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * 签名基于时间戳与原始请求正文，验签前不能重排载荷。
+ */
 final class HmacProtocol {
     private HmacProtocol() {
     }

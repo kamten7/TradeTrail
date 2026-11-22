@@ -8,6 +8,9 @@ import com.tradetrail.domain.fulfillment.TrackingProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * 模拟物流适配器负责验签和事件转换，不直接修改订单。
+ */
 @Component
 public class MockTrackingProvider implements TrackingProvider {
     private final ObjectMapper json;
