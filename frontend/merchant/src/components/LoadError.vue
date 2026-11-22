@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 统一呈现列表加载失败并提供重试入口。
 defineProps<{ message: string }>()
 defineEmits<{ retry: [] }>()
 </script>

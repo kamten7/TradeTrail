@@ -1,3 +1,4 @@
+// 店家端会话状态从服务端同步，不把路由守卫当作授权。
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { session, login, logout } from '../api'

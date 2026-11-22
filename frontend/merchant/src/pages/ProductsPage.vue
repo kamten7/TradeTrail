@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 商品改价、上下架和库存调整分别提交服务端。
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { api, money, type Product } from '../api'

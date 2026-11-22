@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 发货操作依据服务端订单状态与售后冻结结果。
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, label, money, type Order } from '../api'

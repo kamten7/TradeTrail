@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 失败退款与失败事件分开恢复，重试使用原业务标识。
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { api, money, type Refund } from '../api'

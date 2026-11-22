@@ -1,3 +1,4 @@
+// 店家端装配路由和状态容器，权限仍由服务端校验。
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'

@@ -1,3 +1,4 @@
+/* 管理台设计变量集中定义，保持页面视觉一致。 */
 :root {
   --tt-primary: #ff6b35;
   --tt-primary-active: #e05520;

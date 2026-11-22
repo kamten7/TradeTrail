@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 复用管理台页面标题与操作区布局。
 defineProps<{ title: string; description: string }>()
 </script>
 <template>

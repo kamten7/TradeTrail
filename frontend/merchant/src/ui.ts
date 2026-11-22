@@ -1,3 +1,4 @@
+// 集中注册店家端使用的 Element Plus 组件。
 import type { App } from 'vue'
 import {
   ElAlert,

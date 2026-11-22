@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 管理台导航依会话展示，服务端仍校验角色。
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, type FormInstance } from 'element-plus'

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 图标组件读取共享路径并保留统一的无障碍属性。
 import { icons } from '../../../shared/icons'
 defineProps<{ name: keyof typeof icons }>()
 </script>

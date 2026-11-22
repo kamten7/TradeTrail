@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 售后审核与验收按工单状态显示可执行动作。
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, label, type AfterSale } from '../api'

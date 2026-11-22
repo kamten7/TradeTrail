@@ -1,3 +1,4 @@
+// 开发代理统一去掉 API 前缀并转发至商城。
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
