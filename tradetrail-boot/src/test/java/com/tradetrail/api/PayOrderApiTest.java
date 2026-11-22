@@ -9,6 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证支付尝试与模拟付款入口的可观察结果。
+ */
 class PayOrderApiTest extends ApiTestBase {
     @Test
     void createsOneAttemptAndWaitsForVerifiedCallback() throws Exception {

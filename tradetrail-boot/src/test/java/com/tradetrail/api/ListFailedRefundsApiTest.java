@@ -13,6 +13,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证失败退款列表只展示需要人工处理的记录。
+ */
 @SpringBootTest(properties = "tradetrail.mock-payments.refund-failures-before-success=1")
 class ListFailedRefundsApiTest extends ApiTestBase {
     @Autowired

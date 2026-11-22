@@ -12,6 +12,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 通过接口覆盖购物车选择、报价和结算行为。
+ */
 class AddCartItemApiTest extends ApiTestBase {
     @Test
     void addsPublishedProduct() throws Exception {

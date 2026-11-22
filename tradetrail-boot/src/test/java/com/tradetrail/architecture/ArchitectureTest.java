@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+/**
+ * 约束领域依赖、持久层隔离与业务仓储归属。
+ */
 class ArchitectureTest {
     @Test
     void domainDoesNotDependOnFrameworksOrOuterLayers() {

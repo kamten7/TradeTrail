@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * 单独验证订单状态机的允许转换与非法事件。
+ */
 class OrderStateTest {
     @Test
     void everyStateEventPairHasExplicitOutcome() {

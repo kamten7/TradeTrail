@@ -20,6 +20,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 通过接口串联订单履约与售后状态变化。
+ */
 class UpdateProductApiTest extends ApiTestBase {
     @Test
     void updatesPriceUnpublishesAndRejectsWrongRole() throws Exception {

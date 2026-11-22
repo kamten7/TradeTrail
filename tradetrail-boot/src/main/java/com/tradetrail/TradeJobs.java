@@ -11,6 +11,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * 定时任务扫描待处理记录，执行前由应用服务复核当前状态。
+ */
 @Component
 @EnableScheduling
 @ConditionalOnProperty(name = "tradetrail.jobs.enabled", havingValue = "true", matchIfMissing = true)

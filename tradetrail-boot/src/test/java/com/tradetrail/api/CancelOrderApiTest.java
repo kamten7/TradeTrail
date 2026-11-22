@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证取消订单与支付竞争时的可观察结果。
+ */
 class CancelOrderApiTest extends ApiTestBase {
     @Test
     void releasesReservationWhenCancelled() throws Exception {

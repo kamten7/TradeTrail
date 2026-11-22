@@ -1,3 +1,4 @@
+# 商城 MySQL 连接由环境变量覆盖，避免把部署凭据写入代码。
 spring:
   datasource:
     url: ${TRADETRAIL_DB_URL:jdbc:mysql://localhost:3310/tradetrail?useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}

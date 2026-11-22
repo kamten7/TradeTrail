@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证演示账号登录与会话响应。
+ */
 class LoginApiTest extends ApiTestBase {
     @Test
     void successfulLoginReturnsJsonWithoutCrossOriginRedirect() throws Exception {

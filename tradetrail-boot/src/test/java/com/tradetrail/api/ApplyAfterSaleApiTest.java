@@ -9,6 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证售后申请入口的响应及关键业务约束。
+ */
 class ApplyAfterSaleApiTest extends ApiTestBase {
     @Test
     void acceptsPaidOrderApplication() throws Exception {

@@ -9,6 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证多商品下单、服务端核价与重复请求处理。
+ */
 class CreateOrderApiTest extends ApiTestBase {
     @Test
     void createsOrderAndReturnsSameIdForRepeatedRequest() throws Exception {

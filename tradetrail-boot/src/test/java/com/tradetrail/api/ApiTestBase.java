@@ -21,6 +21,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 提供隔离的 HTTP 测试会话与请求辅助，复用认证准备。
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 abstract class ApiTestBase {

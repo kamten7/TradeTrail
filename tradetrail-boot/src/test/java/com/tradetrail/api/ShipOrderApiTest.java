@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证发货入口的订单状态与运单结果。
+ */
 class ShipOrderApiTest extends ApiTestBase {
     @Test
     void shipsPaidOrder() throws Exception {

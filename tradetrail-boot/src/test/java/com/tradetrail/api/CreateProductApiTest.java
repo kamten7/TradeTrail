@@ -8,6 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 验证店家创建商品的输入合同与权限。
+ */
 class CreateProductApiTest extends ApiTestBase {
     @Test
     void createsProductAndRejectsInvalidPrice() throws Exception {

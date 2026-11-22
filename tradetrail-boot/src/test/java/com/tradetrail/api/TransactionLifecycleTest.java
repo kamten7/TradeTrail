@@ -27,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * 验证支付、履约、售后和退款的完整状态链。
+ */
 class TransactionLifecycleTest extends ApiTestBase {
     @Autowired
     CatalogService catalog;

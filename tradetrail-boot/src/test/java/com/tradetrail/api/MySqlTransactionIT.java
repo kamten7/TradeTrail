@@ -6,6 +6,9 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+/**
+ * 在真实 MySQL 上验证事务、唯一约束和并发路径。
+ */
 @Testcontainers
 class MySqlTransactionIT extends TransactionLifecycleTest {
     @Container

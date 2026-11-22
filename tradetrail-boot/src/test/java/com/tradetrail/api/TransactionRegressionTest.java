@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * 保留交易竞争和异常恢复的回归场景。
+ */
 class TransactionRegressionTest extends ApiTestBase {
     @Autowired
     CatalogService catalog;

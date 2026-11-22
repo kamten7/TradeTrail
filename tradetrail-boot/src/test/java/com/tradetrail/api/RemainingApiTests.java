@@ -18,6 +18,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * 覆盖其余角色化接口的请求与响应合同。
+ */
 class GetSessionApiTest extends ApiTestBase {
     @Test
     void returnsCsrfToken() throws Exception {
