@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 店家仅恢复失败投递，避免直接修改业务事实。
+ */
 @RestController
 public class OutboxAdminController {
     private final EventService events;

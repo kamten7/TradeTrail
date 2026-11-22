@@ -13,6 +13,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * 为请求建立追踪号，便于关联错误响应与状态日志。
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestTraceFilter extends OncePerRequestFilter {

@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 店家订单查询与发货入口，发货仍受售后冻结约束。
+ */
 @RestController
 public class OrderAdminController {
     private final OrderService orders;

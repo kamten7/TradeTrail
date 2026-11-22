@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 店家维护商品和库存，价格与数量以服务端记录为准。
+ */
 @RestController
 public class ProductAdminController {
     public record UpdateProduct(@NotBlank String name, String description, @Min(1) long priceCents, boolean published) {

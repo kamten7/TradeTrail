@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+/**
+ * 统一业务异常的响应结构，保留追踪号和允许的后续操作。
+ */
 @RestControllerAdvice
 public class ApiErrorHandler {
     @ExceptionHandler(TradeFailure.class)

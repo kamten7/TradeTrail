@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 失败退款沿原退款号恢复，避免重复退款。
+ */
 @RestController
 public class RefundAdminController {
     private final PaymentService payments;

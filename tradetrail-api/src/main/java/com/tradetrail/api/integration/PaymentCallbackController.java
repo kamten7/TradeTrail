@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 支付回调与客户操作分离，先验签再校验渠道事实。
+ */
 @RestController
 public class PaymentCallbackController {
     private final PaymentService payments;

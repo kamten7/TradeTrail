@@ -19,6 +19,9 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * 演示账号、角色和 CSRF 规则在入口层集中配置。
+ */
 @Configuration
 public class SecurityConfig {
     @Bean

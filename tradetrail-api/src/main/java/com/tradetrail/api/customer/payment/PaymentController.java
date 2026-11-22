@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 客户按订单归属创建支付尝试并查询处理结果。
+ */
 @RestController
 public class PaymentController {
     private final PaymentService payments;

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 客户仅能申请和查看本人订单的售后记录。
+ */
 @RestController
 public class AfterSaleController {
     public record ReturnParcel(@NotBlank @Size(max = 100) String trackingNo) {

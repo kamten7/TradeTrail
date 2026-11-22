@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 向前端提供当前会话及 CSRF 信息，不承载业务状态。
+ */
 @RestController
 public class SessionController {
     @GetMapping("/session")

@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 物流回调验签后再交给履约用例处理，浏览器不持有签名密钥。
+ */
 @RestController
 public class LogisticsCallbackController {
     private final FulfillmentService fulfillment;

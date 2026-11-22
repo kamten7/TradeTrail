@@ -23,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 客户订单入口；创建、取消和确认受服务端状态守卫约束。
+ */
 @RestController
 public class OrderController {
     private final OrderService orders;

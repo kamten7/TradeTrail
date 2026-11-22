@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 客户购物车入口；结算金额由服务端重新核定。
+ */
 @RestController
 public class CartController {
     @PostMapping("/cart/checkout")

@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 模拟收银台只登记渠道结果，不直接确认订单支付。
+ */
 @RestController
 public class MockCheckoutController {
     private final PaymentService payments;

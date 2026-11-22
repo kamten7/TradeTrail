@@ -3,6 +3,9 @@ package com.tradetrail.api;
 import com.tradetrail.domain.TradeFailure;
 import java.util.List;
 
+/**
+ * 当前分页在内存中截取结果，调用方需留意全量查询成本。
+ */
 public final class PageSlice {
     private PageSlice() {
     }

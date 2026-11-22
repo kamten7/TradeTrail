@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 公开商品查询仅暴露可售商品信息。
+ */
 @RestController
 public class ProductController {
     private final CatalogService catalog;

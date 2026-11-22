@@ -22,6 +22,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
+/**
+ * 成功写请求按身份和请求指纹复用结果，避免网络重试重复执行。
+ */
 public class IdempotencyFilter extends OncePerRequestFilter {
     private final CommandService commands;
     private final TransactionTemplate transactions;

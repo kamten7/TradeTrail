@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 客户按订单归属查询运单摘要与轨迹。
+ */
 @RestController
 public class TrackingController {
     private final FulfillmentService fulfillment;
