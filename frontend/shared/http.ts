@@ -1,3 +1,4 @@
+// 两端共用请求层统一处理会话、CSRF、幂等键和错误响应。
 export type Session = { user: string; roles: string[]; csrfToken: string }
 
 export class ApiError extends Error {

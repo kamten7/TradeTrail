@@ -1,3 +1,4 @@
+// 浏览器验收启动隔离 H2 服务与双前端，避免污染开发库。
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({

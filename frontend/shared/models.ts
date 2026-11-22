@@ -1,3 +1,4 @@
+// 两端共享接口类型和状态展示映射，成交金额以服务端整数分为准。
 export type Product = {
   id: number
   name: string

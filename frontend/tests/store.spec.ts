@@ -1,3 +1,4 @@
+// 从浏览器验证交易闭环及响应丢失后的幂等恢复。
 import { test, expect } from '@playwright/test'
 
 const merchantUrl = process.env.MERCHANT_URL || 'http://127.0.0.1:15174'
